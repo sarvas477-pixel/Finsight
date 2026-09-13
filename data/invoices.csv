@@ -1,0 +1,4 @@
+invoice_id,vendor,amount,category,date
+INV001,ABC Traders,2500,Travel,2026-09-13
+INV002,XYZ Ltd,7500,Food,2026-09-13
+INV003,PQR Services,1200,Office,2026-09-13
