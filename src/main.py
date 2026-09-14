@@ -5,3 +5,11 @@ with open("data/invoices.csv", "r", newline="") as file:
 
     for invoice in reader:
         print(invoice)
+
+    amount = 3000
+    limit = 5000
+
+    if amonut > limit :
+        print("FLAGEED: amount exceeds limit")
+    else :
+        print ("Clean: amount is within limit")
