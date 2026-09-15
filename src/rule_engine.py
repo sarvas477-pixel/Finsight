@@ -1,6 +1,6 @@
 import pandas as pd
 
-from config import CATEGORY_LIMITS, REQUIRED_COLUMNS
+from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
 
 def process_invoices(df: pd.DataFrame) -> list:
     """
