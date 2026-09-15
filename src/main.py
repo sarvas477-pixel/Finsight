@@ -9,7 +9,7 @@ with open("data/invoices.csv", "r", newline="") as file:
     amount = 3000
     limit = 5000
 
-    if amonut > limit :
+    if amount > limit :
         print("FLAGEED: amount exceeds limit")
     else :
         print ("Clean: amount is within limit")
