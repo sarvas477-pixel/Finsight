@@ -42,11 +42,12 @@ def process_invoices(df: pd.DataFrame) -> list:
         # 2. Check duplicate invoice ID
         if invoice_id in seen_ids:
             reasons.append({
-                "rule": "DUPLICATE_INVOICE_ID",
-                "message": "Invoice ID already exists",
-                "actual_value": invoice_id,
-                "expected_value": "Unique invoice ID"
-            })
+    "rule": "DUPLICATE_INVOICE_ID",
+    "message": "Invoice ID already exists",
+    "actual_value": invoice_id,
+    "expected_value": "Unique invoice ID",
+    "matched_invoice_id": invoice_id
+})
 
         if not pd.isna(invoice_id):
             seen_ids.add(invoice_id)
