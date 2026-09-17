@@ -1,7 +1,7 @@
 import pandas as pd
 
-from rule_engine import process_invoices
-from explanation import create_prompt
+from src.rule_engine import process_invoices
+from src.explanation import create_prompt
 
 
 # Read invoice data
