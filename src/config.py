@@ -2,7 +2,8 @@ CATEGORY_LIMITS = {
     "Office": 10000,
     "IT": 10000,
     "Travel": 15000,
-    "Food": 5000
+    "Food": 5000,
+    "Equipment": 10000,
 }
 
 REQUIRED_COLUMNS = [
@@ -10,5 +11,5 @@ REQUIRED_COLUMNS = [
     "vendor",
     "amount",
     "category",
-    "invoice_date"
+    "invoice_date",
 ]
