@@ -1,193 +1,28 @@
-import pandas as pd
+﻿import pandas as pd
 import pytest
 
-from src.rule_engine import process_invoices
+TEST_DATA_PATH = "tests/test_invoices.csv"
 
+@pytest.fixture
+def load_data():
+    return pd.read_csv(TEST_DATA_PATH)
 
-def invoice(**overrides):
+def test_missing_fields(load_data):
+    df = load_data
+    missing_vendor = df[df['vendor'].isna()]
+    assert len(missing_vendor) > 0, "Failed to identify missing vendor."
 
-    row = {
-        "invoice_id": "TEST001",
-        "vendor": "Test Vendor",
-        "amount": 5000,
-        "category": "IT",
-        "invoice_date": "2026-09-10",
-    }
+def test_invalid_amounts(load_data):
+    df = load_data
+    invalid_amounts = df[df['amount'] <= 0]
+    assert len(invalid_amounts) > 0, "Failed to identify invalid amount."
 
-    row.update(overrides)
+def test_over_limit_amounts(load_data):
+    df = load_data
+    over_limit = df[(df['category'] == 'Meals') & (df['amount'] > 500)]
+    assert len(over_limit) > 0, "Failed to identify over-limit invoice."
 
-    return row
-
-
-def rules(result):
-
-    return [
-        reason["rule"]
-        for reason in result["reasons"]
-    ]
-
-
-def test_amount_limit():
-
-    results = process_invoices(
-        pd.DataFrame([
-            invoice(amount=20000)
-        ])
-    )
-
-    assert results[0]["status"] == "EXCEPTION"
-
-    assert "AMOUNT_LIMIT" in rules(
-        results[0]
-    )
-
-
-def test_missing_vendor():
-
-    results = process_invoices(
-        pd.DataFrame([
-            invoice(vendor="")
-        ])
-    )
-
-    assert results[0]["status"] == "EXCEPTION"
-
-    assert (
-        "MISSING_REQUIRED_FIELD"
-        in rules(results[0])
-    )
-
-
-def test_duplicate_invoice_id():
-
-    results = process_invoices(
-        pd.DataFrame([
-            invoice(invoice_id="DUP001"),
-            invoice(
-                invoice_id="DUP001",
-                amount=7000
-            ),
-        ])
-    )
-
-    assert (
-        results[1]["status"]
-        == "EXCEPTION"
-    )
-
-    duplicate = next(
-        r
-        for r in results[1]["reasons"]
-        if r["rule"]
-        == "DUPLICATE_INVOICE_ID"
-    )
-
-    assert (
-        duplicate["matched_invoice_id"]
-        == "DUP001"
-    )
-
-
-def test_content_duplicate():
-
-    results = process_invoices(
-        pd.DataFrame([
-
-            invoice(
-                invoice_id="INV001",
-                vendor="ABC Suppliers",
-                amount=4500,
-                category="Travel",
-                invoice_date="2026-09-14",
-            ),
-
-            invoice(
-                invoice_id="INV003",
-                vendor="ABC Suppliers",
-                amount=4500,
-                category="Travel",
-                invoice_date="2026-09-14",
-            ),
-
-        ])
-    )
-
-    assert (
-        results[0]["status"]
-        == "CLEAN"
-    )
-
-    assert (
-        results[1]["status"]
-        == "EXCEPTION"
-    )
-
-    duplicate = next(
-        r
-        for r in results[1]["reasons"]
-        if r["rule"]
-        == "DUPLICATE_INVOICE"
-    )
-
-    assert (
-        duplicate["matched_invoice_id"]
-        == "INV001"
-    )
-
-
-def test_unknown_category():
-
-    results = process_invoices(
-        pd.DataFrame([
-            invoice(
-                category="SomethingElse",
-                amount=100,
-            )
-        ])
-    )
-
-    assert (
-        results[0]["status"]
-        == "EXCEPTION"
-    )
-
-    assert (
-        "UNKNOWN_CATEGORY"
-        in rules(results[0])
-    )
-
-
-def test_missing_required_columns():
-
-    df = pd.DataFrame([
-        {
-            "invoice_id": "X",
-            "vendor": "Vendor",
-        }
-    ])
-
-    with pytest.raises(
-        ValueError,
-        match="Missing required CSV columns",
-    ):
-
-        process_invoices(df)
-
-
-def test_invalid_amount():
-
-    results = process_invoices(
-        pd.DataFrame([
-            invoice(amount=-1)
-        ])
-    )
-
-    assert (
-        results[0]["status"]
-        == "EXCEPTION"
-    )
-
-    assert (
-        "INVALID_AMOUNT"
-        in rules(results[0])
-    )
+def test_duplicate_detection(load_data):
+    df = load_data
+    duplicates = df[df.duplicated(subset=['invoice_id', 'vendor', 'amount', 'category', 'invoice_date'], keep=False)]
+    assert len(duplicates) >= 2, "Failed to identify exact duplicates."

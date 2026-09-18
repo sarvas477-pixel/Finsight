@@ -1,0 +1,7 @@
+invoice_id,vendor,amount,category,invoice_date,expected_flag
+INV001,Acme Corp,150.00,Office,2026-03-01,VALID
+INV002,,250.00,Travel,2026-03-02,MISSING_VENDOR
+INV003,Tech Supplies,-50.00,Equipment,2026-03-03,INVALID_AMOUNT
+INV004,Global Logistics,1200.00,Meals,2026-03-04,OVER_LIMIT
+INV005,Acme Corp,150.00,Office,2026-03-01,DUPLICATE
+INV005,Acme Corp,150.00,Office,2026-03-01,DUPLICATE
