@@ -16,6 +16,8 @@ st.set_page_config(
     layout="wide"
 )
 
+REVIEW_STATUS_VALUE = "REVIEW"
+
 st.title("🧾 Finsight")
 st.subheader("Invoice & Expense Exception Checker")
 
@@ -63,83 +65,125 @@ if uploaded_file is not None:
 
                 results = process_invoices(df)
 
-            # Summary
-            total = len(results)
-            exceptions = sum(
-                r["status"] == "EXCEPTION"
-                for r in results
-            )
-            clean = total - exceptions
+            # --- Sort every invoice into one of three piles ---
+            # NOTE: this assumes M1/M2's status field uses exactly these
+            # three values: "CLEAN", "EXCEPTION", and REVIEW_STATUS_VALUE
+            # (set near the top of this file). If a result doesn't match
+            # any of the three, it falls into "Auto-Passed" by default —
+            # confirm with M1/M2 whether that's the right fallback.
 
-            col1, col2, col3 = st.columns(3)
-
-            col1.metric("Total Invoices", total)
-            col2.metric("Clean", clean)
-            col3.metric("Exceptions", exceptions)
-
-            st.divider()
-
-            # Results table
-            result_table = []
-
-            for r in results:
-
-                reason_text = "; ".join(
-                    reason["message"]
-                    for reason in r["reasons"]
-                )
-
-                matched_id = ""
-
-                for reason in r["reasons"]:
-                    if reason.get("matched_invoice_id"):
-                        matched_id = reason["matched_invoice_id"]
-                        break
-
-                result_table.append({
-                    "Invoice ID": r["invoice_id"],
-                    "Status": r["status"],
-                    "Reason": reason_text,
-                    "Matched Invoice": matched_id
-                })
-
-            results_df = pd.DataFrame(result_table)
-
-            st.subheader("Validation Results")
-            st.dataframe(
-                results_df,
-                use_container_width=True
-            )
-
-            # Exceptions
+            auto_pass_results = [
+                r for r in results
+                if r["status"] not in ("EXCEPTION", REVIEW_STATUS_VALUE)
+            ]
             exception_results = [
                 r for r in results
                 if r["status"] == "EXCEPTION"
             ]
+            review_results = [
+                r for r in results
+                if r["status"] == REVIEW_STATUS_VALUE
+            ]
 
-            if exception_results:
+            # Summary
+            total = len(results)
 
-                st.subheader("⚠️ Exceptions")
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Total Invoices", total)
+            col2.metric("✅ Auto-Passed", len(auto_pass_results))
+            col3.metric("⚠️ Exceptions", len(exception_results))
+            col4.metric("🤔 Needs Review", len(review_results))
 
-                for r in exception_results:
+            st.divider()
 
-                    with st.expander(
-                        f"{r['invoice_id']} — EXCEPTION"
-                    ):
+            def badge_for(status):
+                """Turn a raw status string into an emoji badge label."""
+                if status == "EXCEPTION":
+                    return "⚠️ Exception"
+                if status == REVIEW_STATUS_VALUE:
+                    return "🤔 Needs Review"
+                return "✅ Clean"
 
-                        for reason in r["reasons"]:
+            def build_table(result_list):
+                """Turn a list of result dicts into a display-ready table."""
+                rows = []
+                for r in result_list:
+                    reason_text = "; ".join(
+                        reason["message"]
+                        for reason in r["reasons"]
+                    )
+                    matched_id = ""
+                    for reason in r["reasons"]:
+                        if reason.get("matched_invoice_id"):
+                            matched_id = reason["matched_invoice_id"]
+                            break
+                    rows.append({
+                        "Invoice ID": r["invoice_id"],
+                        "Status": badge_for(r["status"]),
+                        "Reason": reason_text,
+                        "Matched Invoice": matched_id
+                    })
+                return pd.DataFrame(rows)
 
-                            st.write(
-                                f"**{reason['rule']}**: "
-                                f"{reason['message']}"
-                            )
+            tab_pass, tab_exceptions, tab_review = st.tabs([
+                f"✅ Auto-Passed ({len(auto_pass_results)})",
+                f"⚠️ Exceptions ({len(exception_results)})",
+                f"🤔 Needs Review ({len(review_results)})"
+            ])
 
-                            if reason.get("matched_invoice_id"):
+            with tab_pass:
+                if auto_pass_results:
+                    st.dataframe(
+                        build_table(auto_pass_results),
+                        use_container_width=True
+                    )
+                else:
+                    st.info("No invoices auto-passed.")
+
+            with tab_exceptions:
+                if exception_results:
+                    st.dataframe(
+                        build_table(exception_results),
+                        use_container_width=True
+                    )
+                    st.divider()
+                    for r in exception_results:
+                        with st.expander(
+                            f"{r['invoice_id']} — EXCEPTION"
+                        ):
+                            for reason in r["reasons"]:
                                 st.write(
-                                    f"Matched Invoice: "
-                                    f"{reason['matched_invoice_id']}"
+                                    f"**{reason['rule']}**: "
+                                    f"{reason['message']}"
                                 )
+                                if reason.get("matched_invoice_id"):
+                                    st.write(
+                                        f"Matched Invoice: "
+                                        f"{reason['matched_invoice_id']}"
+                                    )
+                else:
+                    st.success("No exceptions found! 🎉")
 
-            else:
-
-                st.success("All invoices passed validation! 🎉")
+            with tab_review:
+                if review_results:
+                    st.dataframe(
+                        build_table(review_results),
+                        use_container_width=True
+                    )
+                    st.divider()
+                    for r in review_results:
+                        with st.expander(
+                            f"{r['invoice_id']} — NEEDS REVIEW"
+                        ):
+                            for reason in r["reasons"]:
+                                st.write(
+                                    f"**{reason['rule']}**: "
+                                    f"{reason['message']}"
+                                )
+                                if reason.get("matched_invoice_id"):
+                                    st.write(
+                                        f"Matched Invoice: "
+                                        f"{reason['matched_invoice_id']}"
+                                    )
+                else:
+                    st.info("Nothing needs human review right now.")
