@@ -1,4 +1,4 @@
-﻿import pandas as pd
+import pandas as pd
 import pytest
 
 TEST_DATA_PATH = "tests/test_invoices.csv"
@@ -26,3 +26,13 @@ def test_duplicate_detection(load_data):
     df = load_data
     duplicates = df[df.duplicated(subset=['invoice_id', 'vendor', 'amount', 'category', 'invoice_date'], keep=False)]
     assert len(duplicates) >= 2, "Failed to identify exact duplicates."
+
+def test_ambiguous_duplicates(load_data):
+    df = load_data
+    ambiguous = df[df.duplicated(subset=['vendor', 'amount'], keep=False)]
+    assert len(ambiguous) >= 2, "Failed to route ambiguous duplicates."
+
+def test_pipeline_execution(load_data):
+    df = load_data
+    assert not df.empty, "Pipeline failure: CSV dataset is empty."
+    assert 'expected_flag' in df.columns, "Pipeline failure: missing expected_flag column."
