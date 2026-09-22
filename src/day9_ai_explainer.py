@@ -26,41 +26,35 @@ def template_fallback(explanation, reason):
     }
 
 
-def parse_ai_json(text):
-    text = text.strip()
-
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1]
-        text = text.rsplit("```", 1)[0].strip()
-
-    return json.loads(text)
-
-
 def generate_ai_explanation(explanation):
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
 
     if not api_key:
         return template_fallback(
             explanation,
-            "OPENAI_API_KEY is not configured."
+            "GEMINI_API_KEY is not configured."
         )
 
     try:
-        from openai import OpenAI
+        from google import genai
+        from google.genai import types
 
-        client = OpenAI(api_key=api_key)
+        client = genai.Client(api_key=api_key)
         prompt = create_evidence_only_prompt(explanation)
 
-        response = client.responses.create(
-            model=os.getenv("OPENAI_MODEL", "gpt-6-astra"),
-            input=prompt,
+        response = client.models.generate_content(
+            model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
+            ),
         )
 
-        ai_response = parse_ai_json(response.output_text)
+        ai_response = json.loads(response.text)
 
         validate_ai_citations(ai_response, explanation)
 
-        ai_response["mode"] = "openai_api"
+        ai_response["mode"] = "gemini_api"
         return ai_response
 
     except Exception as error:
