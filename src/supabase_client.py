@@ -1,19 +1,33 @@
+"""Optional Supabase connection, loaded only when explicitly requested."""
+from __future__ import annotations
+
 import os
+from functools import lru_cache
 from pathlib import Path
 
 from dotenv import load_dotenv
-from supabase import create_client
 
-# Load .env from the main FinSight folder
-env_path = Path(__file__).resolve().parents[1] / ".env"
-load_dotenv(env_path)
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("Supabase URL or key is missing in .env")
+@lru_cache(maxsize=1)
+def get_supabase():
+    """Create the client lazily so local CSV processing needs no credentials."""
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_KEY")
+    if not url or not key:
+        raise RuntimeError(
+            "Supabase is not configured. Set SUPABASE_URL and SUPABASE_KEY in .env."
+        )
+    from supabase import create_client
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    return create_client(url, key)
 
-print("Supabase connected successfully!")
+
+# Backward-compatible access for scripts that explicitly need a client.
+class _LazyClient:
+    def __getattr__(self, name):
+        return getattr(get_supabase(), name)
+
+
+supabase = _LazyClient()

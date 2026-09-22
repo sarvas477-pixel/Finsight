@@ -1,3 +1,14 @@
+# Python
+a__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Environment and local state
 .env
-__pycache__/
-*.pyc
+.streamlit/
+*.log
+
+# Generated local data
+.DS_Store

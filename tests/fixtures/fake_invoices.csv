@@ -1,0 +1,6 @@
+invoice_id,vendor,amount,category,invoice_date
+FAKE001,Acme Ltd,1200,Office,2026-09-20
+FAKE002,,800,Travel,2026-09-20
+FAKE003,Bad Amount,-5,Food,2026-09-20
+FAKE004,Large Travel,16000,Travel,2026-09-21
+FAKE005,Acme Ltd,1200,Office,2026-09-20
