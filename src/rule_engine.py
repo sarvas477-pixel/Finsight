@@ -1,10 +1,18 @@
+import math
+from typing import Any
+
 import pandas as pd
 
 from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
 
 
-def _is_missing(value):
-    """Return True when a value is None, NaN, or blank."""
+# ============================================================
+# VALUE HELPERS
+# ============================================================
+
+def _is_missing(value: Any) -> bool:
+    """Return True for None, NaN, or blank strings."""
+
     if value is None:
         return True
 
@@ -17,44 +25,53 @@ def _is_missing(value):
     return isinstance(value, str) and value.strip() == ""
 
 
-def _normalise_text(value):
+def _normalise_text(value: Any):
     """Normalize text for reliable comparisons."""
+
     if _is_missing(value):
         return None
 
     return str(value).strip().casefold()
 
 
-def _parse_amount(value):
+def _parse_amount(value: Any):
     """
-    Convert amount to float.
+    Convert amount into a finite float.
 
     Returns:
-        float value when valid
-        None when missing or invalid
+        float -> valid amount
+        None  -> missing/invalid/non-finite amount
     """
+
     if _is_missing(value):
         return None
 
     try:
-        return float(value)
+        number = float(value)
+
+        if not math.isfinite(number):
+            return None
+
+        return number
+
     except (TypeError, ValueError):
         return None
 
 
-def _normalise_date(value):
+def _normalise_date(value: Any):
     """
     Convert a valid date to YYYY-MM-DD.
 
-    Returns:
-        normalized date string
-        None when missing
-        None when invalid
+    Returns None when the date is missing or invalid.
     """
+
     if _is_missing(value):
         return None
 
-    parsed = pd.to_datetime(value, errors="coerce")
+    parsed = pd.to_datetime(
+        value,
+        errors="coerce"
+    )
 
     if pd.isna(parsed):
         return None
@@ -62,23 +79,42 @@ def _normalise_date(value):
     return parsed.strftime("%Y-%m-%d")
 
 
-def _duplicate_match(invoice, previous):
+# ============================================================
+# DUPLICATE DETECTION
+# ============================================================
+
+def _duplicate_match(invoice, previous) -> bool:
     """
-    Detect content duplicates using:
+    Content duplicate key:
 
         vendor + amount + invoice_date
 
-    Category is intentionally not part of the duplicate key.
+    Category is intentionally NOT part of the duplicate key.
     """
 
-    vendor_a = _normalise_text(invoice.get("vendor"))
-    vendor_b = _normalise_text(previous.get("vendor"))
+    vendor_a = _normalise_text(
+        invoice.get("vendor")
+    )
 
-    date_a = _normalise_date(invoice.get("invoice_date"))
-    date_b = _normalise_date(previous.get("invoice_date"))
+    vendor_b = _normalise_text(
+        previous.get("vendor")
+    )
 
-    amount_a = _parse_amount(invoice.get("amount"))
-    amount_b = _parse_amount(previous.get("amount"))
+    date_a = _normalise_date(
+        invoice.get("invoice_date")
+    )
+
+    date_b = _normalise_date(
+        previous.get("invoice_date")
+    )
+
+    amount_a = _parse_amount(
+        invoice.get("amount")
+    )
+
+    amount_b = _parse_amount(
+        previous.get("amount")
+    )
 
     if vendor_a is None or vendor_b is None:
         return False
@@ -96,34 +132,19 @@ def _duplicate_match(invoice, previous):
     )
 
 
-def process_invoices(df: pd.DataFrame) -> list:
+# ============================================================
+# DATAFRAME VALIDATION
+# ============================================================
+
+def validate_dataframe(df: pd.DataFrame) -> None:
     """
-    Main deterministic FinSight rule engine.
-
-    Input:
-        pandas DataFrame containing invoice records.
-
-    Output:
-        list of structured decision results.
-
-    Rules:
-        1. Required fields
-        2. Duplicate invoice ID
-        3. Invalid amount
-        4. Invalid date
-        5. Unknown category
-        6. Category spending limit
-        7. Content duplicate
+    Validate dataframe structure before processing.
     """
 
     if not isinstance(df, pd.DataFrame):
         raise TypeError(
             "process_invoices expects a pandas DataFrame"
         )
-
-    # --------------------------------------------------
-    # 1. Validate required CSV columns
-    # --------------------------------------------------
 
     missing_columns = [
         column
@@ -137,14 +158,51 @@ def process_invoices(df: pd.DataFrame) -> list:
             + ", ".join(missing_columns)
         )
 
+    duplicate_columns = (
+        df.columns[
+            df.columns.duplicated()
+        ]
+        .tolist()
+    )
+
+    if duplicate_columns:
+        raise ValueError(
+            "Duplicate CSV columns found: "
+            + ", ".join(
+                map(str, duplicate_columns)
+            )
+        )
+
+
+# ============================================================
+# MAIN RULE ENGINE
+# ============================================================
+
+def process_invoices(df: pd.DataFrame) -> list:
+    """
+    Main deterministic FinSight rule engine.
+
+    Rules:
+
+    1. Required fields
+    2. Duplicate invoice ID
+    3. Invalid amount
+    4. Invalid date
+    5. Unknown category
+    6. Category spending limit
+    7. Content duplicate
+    """
+
+    validate_dataframe(df)
+
     results = []
 
     seen_ids = {}
     previous_invoices = []
 
-    # --------------------------------------------------
-    # Process every invoice
-    # --------------------------------------------------
+    # ========================================================
+    # PROCESS EVERY INVOICE
+    # ========================================================
 
     for _, invoice in df.iterrows():
 
@@ -164,53 +222,70 @@ def process_invoices(df: pd.DataFrame) -> list:
             "invoice_date": invoice_date,
         }
 
-        # --------------------------------------------------
-        # 2. Required fields
-        # --------------------------------------------------
+        # ====================================================
+        # 1. REQUIRED FIELDS
+        # ====================================================
 
         for field in REQUIRED_COLUMNS:
 
-            value = values[field]
-
-            if _is_missing(value):
+            if _is_missing(values[field]):
 
                 reasons.append({
                     "rule": "MISSING_REQUIRED_FIELD",
                     "message": f"{field} is missing",
                     "actual_value": None,
-                    "expected_value": f"{field} must be provided",
+                    "expected_value": (
+                        f"{field} must be provided"
+                    ),
                     "human_review_required": True,
                 })
 
-        # --------------------------------------------------
-        # 3. Duplicate invoice ID
-        # --------------------------------------------------
+        # ====================================================
+        # 2. DUPLICATE INVOICE ID
+        # ====================================================
 
-        normalised_id = _normalise_text(invoice_id)
+        normalised_id = _normalise_text(
+            invoice_id
+        )
 
         if (
             normalised_id is not None
             and normalised_id in seen_ids
         ):
 
+            matched_id = seen_ids[
+                normalised_id
+            ]
+
             reasons.append({
                 "rule": "DUPLICATE_INVOICE_ID",
-                "message": "Invoice ID already exists",
+                "message": (
+                    "Invoice ID already exists"
+                ),
                 "actual_value": invoice_id,
-                "expected_value": "Unique invoice ID",
-                "matched_invoice_id": seen_ids[normalised_id],
+                "expected_value": (
+                    "Unique invoice ID"
+                ),
+                "matched_invoice_id": matched_id,
+                "matched_invoice_ids": [
+                    matched_id
+                ],
                 "human_review_required": True,
             })
 
         elif normalised_id is not None:
 
-            seen_ids[normalised_id] = invoice_id
+            seen_ids[
+                normalised_id
+            ] = invoice_id
 
-        # --------------------------------------------------
-        # 4. Amount validation
-        # --------------------------------------------------
+        # ====================================================
+        # 3. AMOUNT VALIDATION
+        # ====================================================
 
-        numeric_amount = _parse_amount(amount)
+        numeric_amount = _parse_amount(
+            amount
+        )
 
         if not _is_missing(amount):
 
@@ -218,9 +293,14 @@ def process_invoices(df: pd.DataFrame) -> list:
 
                 reasons.append({
                     "rule": "INVALID_AMOUNT",
-                    "message": "Amount must be a valid number",
+                    "message": (
+                        "Amount must be a valid "
+                        "finite number"
+                    ),
                     "actual_value": amount,
-                    "expected_value": "Numeric amount",
+                    "expected_value": (
+                        "Numeric finite amount"
+                    ),
                     "human_review_required": True,
                 })
 
@@ -228,17 +308,24 @@ def process_invoices(df: pd.DataFrame) -> list:
 
                 reasons.append({
                     "rule": "INVALID_AMOUNT",
-                    "message": "Amount must be greater than zero",
+                    "message": (
+                        "Amount must be greater "
+                        "than zero"
+                    ),
                     "actual_value": numeric_amount,
-                    "expected_value": "Amount greater than zero",
+                    "expected_value": (
+                        "Amount greater than zero"
+                    ),
                     "human_review_required": True,
                 })
 
-        # --------------------------------------------------
-        # 5. Date validation
-        # --------------------------------------------------
+        # ====================================================
+        # 4. DATE VALIDATION
+        # ====================================================
 
-        normalized_date = _normalise_date(invoice_date)
+        normalized_date = _normalise_date(
+            invoice_date
+        )
 
         if not _is_missing(invoice_date):
 
@@ -246,23 +333,30 @@ def process_invoices(df: pd.DataFrame) -> list:
 
                 reasons.append({
                     "rule": "INVALID_DATE",
-                    "message": "Invoice date is invalid",
+                    "message": (
+                        "Invoice date is invalid"
+                    ),
                     "actual_value": invoice_date,
-                    "expected_value": "Valid date",
+                    "expected_value": (
+                        "Valid date"
+                    ),
                     "human_review_required": True,
                 })
 
-        # --------------------------------------------------
-        # 6. Category validation
-        # --------------------------------------------------
+        # ====================================================
+        # 5. CATEGORY VALIDATION
+        # ====================================================
 
-        normalised_category = _normalise_text(category)
+        normalised_category = _normalise_text(
+            category
+        )
 
         category_key = next(
             (
                 key
                 for key in CATEGORY_LIMITS
-                if _normalise_text(key) == normalised_category
+                if _normalise_text(key)
+                == normalised_category
             ),
             None,
         )
@@ -274,7 +368,9 @@ def process_invoices(df: pd.DataFrame) -> list:
 
             reasons.append({
                 "rule": "UNKNOWN_CATEGORY",
-                "message": "Category is not configured",
+                "message": (
+                    "Category is not configured"
+                ),
                 "actual_value": category,
                 "expected_value": sorted(
                     CATEGORY_LIMITS.keys()
@@ -282,9 +378,9 @@ def process_invoices(df: pd.DataFrame) -> list:
                 "human_review_required": True,
             })
 
-        # --------------------------------------------------
-        # 7. Category spending limit
-        # --------------------------------------------------
+        # ====================================================
+        # 6. CATEGORY SPENDING LIMIT
+        # ====================================================
 
         if (
             numeric_amount is not None
@@ -292,37 +388,50 @@ def process_invoices(df: pd.DataFrame) -> list:
             and category_key is not None
         ):
 
-            limit = CATEGORY_LIMITS[category_key]
+            limit = CATEGORY_LIMITS[
+                category_key
+            ]
 
             if numeric_amount > limit:
 
                 reasons.append({
                     "rule": "AMOUNT_LIMIT",
-                    "message": "Amount exceeds category limit",
+                    "message": (
+                        "Amount exceeds category "
+                        "limit"
+                    ),
                     "actual_value": numeric_amount,
                     "expected_value": limit,
                     "human_review_required": True,
                 })
 
-        # --------------------------------------------------
-        # 8. Content duplicate
-        # --------------------------------------------------
+        # ====================================================
+        # 7. CONTENT DUPLICATE
+        # ====================================================
 
-        matched_invoice_id = None
+        matched_invoice_ids = []
 
         for previous in previous_invoices:
 
-            if _duplicate_match(values, previous):
+            if _duplicate_match(
+                values,
+                previous
+            ):
 
-                matched_invoice_id = previous.get(
+                matched_id = previous.get(
                     "invoice_id"
+                )
+
+                matched_invoice_ids.append(
+                    matched_id
                 )
 
                 reasons.append({
                     "rule": "DUPLICATE_INVOICE",
                     "message": (
-                        "Possible duplicate: vendor, amount, "
-                        "and invoice date match another invoice"
+                        "Possible duplicate: vendor, "
+                        "amount, and invoice date "
+                        "match another invoice"
                     ),
                     "actual_value": {
                         "vendor": vendor,
@@ -330,30 +439,39 @@ def process_invoices(df: pd.DataFrame) -> list:
                         "invoice_date": normalized_date,
                     },
                     "expected_value": (
-                        "No invoice with the same vendor, "
-                        "amount, and date"
+                        "No invoice with the same "
+                        "vendor, amount, and date"
                     ),
-                    "matched_invoice_id": matched_invoice_id,
+                    "matched_invoice_id": matched_id,
+                    "matched_invoice_ids": [
+                        matched_id
+                    ],
                     "human_review_required": True,
                 })
 
                 break
 
-        # --------------------------------------------------
-        # Save current invoice for future duplicate checks
-        # --------------------------------------------------
+        # ====================================================
+        # SAVE CURRENT INVOICE
+        # ====================================================
 
         current_record = values.copy()
 
-        current_record["amount"] = numeric_amount
+        current_record["amount"] = (
+            numeric_amount
+        )
 
-        current_record["invoice_date"] = normalized_date
+        current_record["invoice_date"] = (
+            normalized_date
+        )
 
-        previous_invoices.append(current_record)
+        previous_invoices.append(
+            current_record
+        )
 
-        # --------------------------------------------------
-        # 9. Final deterministic decision
-        # --------------------------------------------------
+        # ====================================================
+        # FINAL DECISION
+        # ====================================================
 
         status = (
             "CLEAN"
@@ -362,7 +480,10 @@ def process_invoices(df: pd.DataFrame) -> list:
         )
 
         human_review_required = any(
-            reason.get("human_review_required", False)
+            reason.get(
+                "human_review_required",
+                False
+            )
             for reason in reasons
         )
 
@@ -371,44 +492,59 @@ def process_invoices(df: pd.DataFrame) -> list:
             for reason in reasons
         ]
 
+        # ====================================================
+        # EVIDENCE OBJECT
+        # ====================================================
+
+        evidence = {
+            "invoice_id": invoice_id,
+            "vendor": vendor,
+            "amount": (
+                numeric_amount
+                if numeric_amount is not None
+                else amount
+            ),
+            "category": category,
+            "invoice_date": (
+                normalized_date
+                if normalized_date is not None
+                else invoice_date
+            ),
+            "matched_invoice_id": (
+                matched_invoice_ids[0]
+                if matched_invoice_ids
+                else None
+            ),
+            "matched_invoice_ids": (
+                matched_invoice_ids
+            ),
+        }
+
+        # ====================================================
+        # FINAL RESULT
+        # ====================================================
+
         results.append({
             "invoice_id": invoice_id,
-
             "status": status,
-
-            "human_review_required": human_review_required,
-
+            "human_review_required": (
+                human_review_required
+            ),
             "rule_ids": rule_ids,
-
             "reasons": reasons,
-
-            "evidence": {
-                "vendor": vendor,
-
-                "amount": (
-                    numeric_amount
-                    if numeric_amount is not None
-                    else amount
-                ),
-
-                "category": category,
-
-                "invoice_date": (
-                    normalized_date
-                    if normalized_date is not None
-                    else invoice_date
-                ),
-
-                "matched_invoice_id": matched_invoice_id,
-            },
+            "evidence": evidence,
         })
 
     return results
 
 
+# ============================================================
+# SUMMARY
+# ============================================================
+
 def summarize_results(results):
     """
-    Return simple deterministic summary statistics.
+    Return deterministic summary statistics.
     """
 
     total = len(results)
@@ -424,7 +560,10 @@ def summarize_results(results):
     )
 
     review_required = sum(
-        result.get("human_review_required", False)
+        result.get(
+            "human_review_required",
+            False
+        )
         for result in results
     )
 
@@ -436,21 +575,44 @@ def summarize_results(results):
     }
 
 
+# ============================================================
+# LOCAL EXECUTION
+# ============================================================
+
 if __name__ == "__main__":
 
-    df = pd.read_csv("data/invoices.csv")
+    df = pd.read_csv(
+        "data/invoices.csv"
+    )
 
     results = process_invoices(df)
 
-    summary = summarize_results(results)
+    summary = summarize_results(
+        results
+    )
 
-    print("\nFinSight Rule Engine")
+    print(
+        "\nFinSight Rule Engine"
+    )
+
     print("-" * 40)
 
-    print(f"Total:          {summary['total']}")
-    print(f"Clean:          {summary['clean']}")
-    print(f"Exceptions:     {summary['exceptions']}")
-    print(f"Review required:{summary['review_required']}")
+    print(
+        f"Total:           {summary['total']}"
+    )
+
+    print(
+        f"Clean:           {summary['clean']}"
+    )
+
+    print(
+        f"Exceptions:      {summary['exceptions']}"
+    )
+
+    print(
+        f"Review required: "
+        f"{summary['review_required']}"
+    )
 
     print("\nDetailed Results")
     print("-" * 40)
