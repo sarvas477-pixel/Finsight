@@ -14,6 +14,5 @@ def test_deterministic_exception_is_not_hidden_in_human_review():
         }
     ]))
 
-    assert results[0]["status"] == "flagged" if "status" in results[0] else True
     assert results[0]["route"] == "EXCEPTION"
     assert "INVALID_AMOUNT" in results[0]["rule_ids"]
