@@ -3,6 +3,7 @@ CATEGORY_LIMITS = {
     "IT": 10000,
     "Travel": 15000,
     "Food": 5000,
+    "Meals": 5000,
     "Equipment": 10000,
 }
 
