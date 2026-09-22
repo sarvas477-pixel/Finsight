@@ -15,6 +15,7 @@ def test_fake_csv_covers_main_routes():
         "EXCEPTION",
         "HUMAN_REVIEW",
     ]
+    assert sum(result["route"] == "EXCEPTION" for result in results) == 2
     assert "MISSING_REQUIRED_FIELD" in results[1]["rule_ids"]
     assert "INVALID_AMOUNT" in results[2]["rule_ids"]
     assert "AMOUNT_LIMIT" in results[3]["rule_ids"]
