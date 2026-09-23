@@ -23,7 +23,7 @@ def test_csv_report_export_structure(load_data):
     summary_df = df.groupby('expected_flag').size().reset_index(name='count')
     summary_df.to_csv(EXPORT_DATA_PATH, index=False)
     
-    assert os.path.exists(EXPORT_DATASED_PATH OR EXPORT_DATA_PATH), "Report export failed: CSV file not created."
+    assert os.path.exists(EXPORT_DATASED_PATH if 'EXPORT_DATASED_PATH' in locals() else EXPORT_DATA_PATH), "Report export failed: CSV file not created."
     
     if os.path.exists(EXPORT_DATA_PATH):
         os.remove(EXPORT_DATA_PATH)
