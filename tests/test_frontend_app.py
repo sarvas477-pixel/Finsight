@@ -1,9 +1,11 @@
 """Interactive smoke tests for the Streamlit frontend."""
+from pathlib import Path
+
 from streamlit.testing.v1 import AppTest
 
 
 def test_frontend_load_analyze_and_navigate():
-    at = AppTest.from_file("app/app.py", default_timeout=20).run()
+    at = AppTest.from_file(Path(__file__).resolve().parents[1] / "app" / "app.py", default_timeout=20).run()
     assert not at.exception, at.exception
 
     at.button("Load bundled sample →").click().run()
