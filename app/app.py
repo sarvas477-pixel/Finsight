@@ -212,6 +212,8 @@ def empty_state() -> None:
         with col:
             st.markdown(f'<div class="fs-step"><div class="fs-step-no">{n}</div><div class="fs-step-title">{title}</div><div class="fs-sub">{body}</div></div>', unsafe_allow_html=True)
     st.info("Upload an invoice CSV from the sidebar or use the bundled sample data.")
+    st.markdown('<div class="fs-section">FinSight Copilot</div>', unsafe_allow_html=True)
+    copilot_tab()
 
 
 def summary(results: list[dict]) -> None:
@@ -332,23 +334,36 @@ def audit_tab(results: list[dict]) -> None:
 
 def copilot_tab() -> None:
     st.markdown('<div class="fs-section">FinSight Copilot</div>', unsafe_allow_html=True)
-    st.markdown('<div class="fs-card"><div class="fs-eyebrow">Evidence-grounded assistant</div><h2>Ask the invoice data.</h2><div class="fs-sub">Copilot explains and summarizes trusted analysis. It never changes a deterministic decision.</div></div>', unsafe_allow_html=True)
-    prompts = ["Summarize this batch","Which invoices need human review?","Explain the exceptions","What duplicates were detected?"]
+    st.markdown(
+        '<div class="fs-card"><div class="fs-eyebrow">General AI + FinSight intelligence</div>'
+        '<h2>Ask anything.</h2><div class="fs-sub">Ask about invoices or switch topics completely — '
+        'coding, study, science, writing, technology, ideas, or everyday questions. '
+        'Invoice decisions remain controlled by the deterministic rule engine.</div></div>',
+        unsafe_allow_html=True,
+    )
+    prompts = [
+        "Summarize this batch",
+        "Which invoices need human review?",
+        "Explain the exceptions",
+        "Explain Python lists simply",
+    ]
     cols = st.columns(4)
-    for col,prompt in zip(cols,prompts):
+    for col, prompt in zip(cols, prompts):
         with col:
             if st.button(prompt, key=f"quick_{prompt}", use_container_width=True):
-                answer,mode = copilot(prompt)
-                st.session_state.chat += [("user",prompt),("assistant",answer)]
-                add_audit("AI_QUERY","",f"{mode}: {prompt}"); st.rerun()
-    for role,message in st.session_state.chat:
-        with st.chat_message(role): st.write(message)
-    question = st.chat_input("Ask about an invoice, exception, duplicate, rule or review...")
+                answer, mode = copilot(prompt)
+                st.session_state.chat += [("user", prompt), ("assistant", answer)]
+                add_audit("AI_QUERY", "", f"{mode}: {prompt}")
+                st.rerun()
+    for role, message in st.session_state.chat:
+        with st.chat_message(role):
+            st.write(message)
+    question = st.chat_input("Ask anything — invoice, coding, study, science, writing, or general knowledge...")
     if question:
-        answer,mode = copilot(question)
-        st.session_state.chat += [("user",question),("assistant",answer)]
-        add_audit("AI_QUERY","",f"{mode}: {question}"); st.rerun()
-
+        answer, mode = copilot(question)
+        st.session_state.chat += [("user", question), ("assistant", answer)]
+        add_audit("AI_QUERY", "", f"{mode}: {question}")
+        st.rerun()
 
 def workspace() -> None:
     df = st.session_state.df
