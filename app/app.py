@@ -49,6 +49,36 @@ div.stButton>button,div.stDownloadButton>button{border-radius:14px;border:1px so
 button[kind="primary"]{background:linear-gradient(90deg,#ff4f8b,#8b5cf6)!important;border:0!important;color:white!important;box-shadow:0 8px 30px #8b5cf633}
 [data-testid="stDataFrame"]{border:1px solid var(--line);border-radius:18px;overflow:hidden}
 @keyframes pulse{50%{transform:scale(1.12);opacity:.75}} @keyframes float{50%{transform:translateY(-12px) rotate(4deg)}} @keyframes spin{to{transform:rotate(360deg)}}
+/* --- Full dark theme overrides --- */
+html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"]{background:#09090b!important;color:#f6f5f2!important}
+[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 75% 5%,#251238 0,#09090b 35%)!important}
+[data-testid="stHeader"]{background:transparent!important}
+[data-testid="stSidebar"],[data-testid="stSidebar"]>div{background:#0e0e12!important;color:#f6f5f2!important}
+[data-testid="stSidebar"] *{color:#eee!important}
+.stMarkdown,.stText,.stCaption,p,label,small,span{color:#f1eff3}
+[data-testid="stFileUploader"]{background:#121216!important;border:1px solid #292932!important;border-radius:18px!important}
+[data-testid="stFileUploader"] section{background:#121216!important;border:1px dashed #3a3944!important;border-radius:16px!important}
+[data-testid="stFileUploader"] section>div{background:#121216!important}
+[data-testid="stFileUploader"] button{background:#1b1b22!important;color:#fff!important;border:1px solid #3a3944!important}
+[data-testid="stFileUploader"] small{color:#9997a3!important}
+.stTextInput>div>div,.stTextArea>div>div,.stSelectbox>div>div,.stNumberInput>div>div{background:#121216!important;color:#fff!important;border-color:#33333d!important}
+input,textarea{background:#121216!important;color:#fff!important;border-color:#33333d!important}
+input::placeholder,textarea::placeholder{color:#777580!important}
+[data-baseweb="select"]>div{background:#121216!important;color:#fff!important;border-color:#33333d!important}
+[data-baseweb="popover"],[data-baseweb="menu"]{background:#17171d!important;color:#fff!important}
+[data-baseweb="menu"] *{color:#fff!important}
+[data-testid="stExpander"],[data-testid="stExpanderDetails"]{background:#121216!important;border:1px solid #292932!important;border-radius:18px!important;color:#fff!important}
+[data-testid="stExpander"] summary{color:#fff!important}
+[data-testid="stTabs"]{color:#fff!important}
+[data-testid="stTabs"] [role="tab"]{color:#aaa8b2!important}
+[data-testid="stTabs"] [role="tab"][aria-selected="true"]{color:#ff78a6!important}
+[data-testid="stDataFrame"],[data-testid="stDataFrame"]>div{background:#121216!important;border-color:#292932!important}
+[data-testid="stMetric"]{background:#121216!important;border:1px solid #292932!important;color:#fff!important}
+[data-testid="stMetricLabel"],[data-testid="stMetricValue"],[data-testid="stMetricDelta"]{color:#fff!important}
+.stAlert{background:#17171d!important;color:#fff!important;border-color:#33333d!important}
+div[data-testid="stStatusWidget"]{background:#121216!important;color:#fff!important}
+hr{border-color:#292932!important}
+
 </style>
 """,
     unsafe_allow_html=True,
