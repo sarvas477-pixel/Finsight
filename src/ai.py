@@ -37,17 +37,33 @@ MAX_HISTORY_ITEMS = 12
 MAX_HISTORY_MESSAGE_CHARS = 2500
 MAX_RESULT_ROWS_IN_PROMPT = 250
 MAX_PROMPT_CHARS = 120_000
+DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
 
 
 def _secret(name: str) -> str | None:
+    """Read a secret from environment first, then Streamlit secrets.
+
+    Whitespace is stripped so pasted keys/models do not silently fail.
+    Streamlit's missing-secrets exception is intentionally treated as
+    "not configured"; provider errors are handled separately and surfaced
+    by ask_gemini/test_gemini_connection.
+    """
     value = os.getenv(name)
-    if value:
-        return value
+    if value is not None:
+        value = str(value).strip()
+        if value:
+            return value
+
     try:
         import streamlit as st
-        return st.secrets.get(name)
+        value = st.secrets.get(name)
+        if value is not None:
+            value = str(value).strip()
+            if value:
+                return value
     except Exception:
-        return None
+        pass
+    return None
 
 
 def _invoice_question(question: str) -> bool:
@@ -273,7 +289,7 @@ def ask_gemini(
         from google import genai
 
         client = genai.Client(api_key=api_key)
-        model = _secret("GEMINI_MODEL") or "gemini-2.5-flash"
+        model = _secret("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
         prompt = build_chat_prompt(question, results, conversation)
 
         last_error: Exception | None = None
@@ -287,8 +303,15 @@ def ask_gemini(
 
         raise last_error or RuntimeError("AI request failed.")
     except Exception as exc:
-        # Never break the Streamlit application because the AI provider is down.
-        return template_chat(question, results), f"template_fallback: {type(exc).__name__}"
+        # Keep the app alive, but do NOT misreport a provider failure as a
+        # missing key. This is critical for debugging invalid keys, quota
+        # limits, model access, network failures, and API changes.
+        error = f"{type(exc).__name__}: {exc}"
+        return (
+            "Gemini is configured, but the request failed. "
+            f"Provider error: {error}",
+            f"gemini_error: {type(exc).__name__}",
+        )
 
 
 def test_gemini_connection() -> tuple[bool, str]:
@@ -301,7 +324,7 @@ def test_gemini_connection() -> tuple[bool, str]:
 
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model=_secret("GEMINI_MODEL") or "gemini-2.5-flash",
+            model=_secret("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL,
             contents="Reply with exactly: FinSight Gemini connection OK",
         )
         text = (getattr(response, "text", None) or "").strip()
