@@ -79,6 +79,28 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     unsafe_allow_html=True,
 )
 
+def build_analysis_dataframe(source_df: pd.DataFrame, results: list[dict]) -> pd.DataFrame:
+    """Return one exportable row per invoice with source data + decision evidence."""
+    rows = []
+    for result in results:
+        evidence = result.get("evidence") or {}
+        reasons = result.get("reasons") or []
+        rows.append({
+            "invoice_id": result.get("invoice_id"),
+            "vendor": evidence.get("vendor"),
+            "amount": evidence.get("amount"),
+            "category": evidence.get("category"),
+            "invoice_date": evidence.get("invoice_date"),
+            "status": result.get("status"),
+            "route": result.get("route"),
+            "confidence": result.get("confidence"),
+            "human_review_required": result.get("human_review_required"),
+            "rule_ids": ", ".join(result.get("rule_ids") or []),
+            "reasons": " | ".join(str(item.get("message", "")) for item in reasons),
+            "matched_invoice_id": evidence.get("matched_invoice_id"),
+        })
+    return pd.DataFrame(rows)
+
 defaults = {
     "df": None, "results": [], "analyzed": False, "chat": [], "reviews": {},
     "audit": [], "gemini_health": None, "supabase_health": None,
@@ -233,13 +255,45 @@ for r in results:
         "Rules": ", ".join(r.get("rule_ids",[])) or "None",
     })
 result_df = pd.DataFrame(table_rows)
+analysis_df = build_analysis_dataframe(df, results)
 
+st.markdown("#### Result table")
 st.dataframe(
     result_df,
     use_container_width=True,
     hide_index=True,
     column_config={"Confidence": st.column_config.ProgressColumn("Confidence",min_value=0,max_value=1,format="%.0f%%")},
 )
+
+st.markdown("#### Analyzed CSV preview")
+st.caption("This is the exact dataset available for download: original invoice fields plus FinSight's decision, routing, confidence, rules, reasons, and duplicate evidence.")
+st.dataframe(
+    analysis_df,
+    use_container_width=True,
+    hide_index=True,
+    height=min(620, max(260, 58 + len(analysis_df) * 35)),
+)
+
+download_left, download_right = st.columns(2)
+with download_left:
+    st.download_button(
+        "⬇ Download analyzed CSV",
+        data=analysis_df.to_csv(index=False).encode("utf-8"),
+        file_name="finsight_analyzed_invoices.csv",
+        mime="text/csv",
+        use_container_width=True,
+        key="download_analyzed_csv",
+    )
+with download_right:
+    exceptions_df = analysis_df[analysis_df["status"] == "EXCEPTION"].copy()
+    st.download_button(
+        f"⬇ Download exceptions CSV ({len(exceptions_df)})",
+        data=exceptions_df.to_csv(index=False).encode("utf-8"),
+        file_name="finsight_exceptions.csv",
+        mime="text/csv",
+        use_container_width=True,
+        key="download_exceptions_csv",
+    )
 
 # Human-readable result cards for the first several invoices.
 st.markdown('<div class="section">What happened?</div>', unsafe_allow_html=True)
@@ -340,10 +394,25 @@ else:
     audit_df=pd.DataFrame(st.session_state.audit)
     if audit_df.empty: st.info("No audit events yet.")
     else: st.dataframe(audit_df,use_container_width=True,hide_index=True)
-    export=[{"invoice_id":r["invoice_id"],"status":r["status"],"route":r.get("route"),"confidence":r.get("confidence"),"human_review_required":r["human_review_required"],"rule_ids":", ".join(r.get("rule_ids",[])),"reasons":" | ".join(x["message"] for x in r.get("reasons",[]))} for r in results]
     c1,c2=st.columns(2)
-    with c1: st.download_button("Download results CSV",pd.DataFrame(export).to_csv(index=False),"finsight_results.csv","text/csv",use_container_width=True)
-    with c2: st.download_button("Download audit JSON",json.dumps(st.session_state.audit,indent=2,default=str),"finsight_audit.json","application/json",use_container_width=True)
+    with c1:
+        st.download_button(
+            "⬇ Download analyzed CSV",
+            analysis_df.to_csv(index=False).encode("utf-8"),
+            "finsight_analyzed_invoices.csv",
+            "text/csv",
+            use_container_width=True,
+            key="download_analyzed_csv_audit",
+        )
+    with c2:
+        st.download_button(
+            "⬇ Download audit JSON",
+            json.dumps(st.session_state.audit, indent=2, default=str),
+            "finsight_audit.json",
+            "application/json",
+            use_container_width=True,
+            key="download_audit_json",
+        )
 
 st.divider()
 st.caption("FinSight · deterministic controls · evidence-grounded AI · human-in-the-loop")
