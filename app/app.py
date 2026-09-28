@@ -227,7 +227,7 @@ def empty_state() -> None:
     for col, icon, title, body in [
         (a,"⌁","Drop a CSV","Your invoice data stays in the workspace."),
         (b,"◈","Run analysis","Rules flag limits, duplicates and missing data."),
-        (c,"✦","Ask Copilot","Get answers about FinSight or general topics."),
+        (c,"✦","Ask Copilot","Get answers about FinSight invoices, exceptions, and app usage."),
     ]:
         with col:
             st.markdown(f'<div class="feature"><div class="feature-icon">{icon}</div><h3>{title}</h3><p>{body}</p></div>', unsafe_allow_html=True)
@@ -239,13 +239,11 @@ def summary(results: list[dict]) -> None:
     s = summarize_results(results)
     avg = sum(float(x.get("confidence", 0)) for x in results) / max(len(results),1)
     # Exception status and human-review routing are separate concepts.
-    exception_count = sum(str(x.get("status", "")).upper() == "EXCEPTION" for x in results)
-    review_count = sum(bool(x.get("human_review_required")) for x in results)
     vals = [
         ("Invoices", s["total"], "total"),
         ("Auto-pass", s["clean"], "safe"),
-        ("Exceptions", exception_count, "flagged"),
-        ("Human review", review_count, "attention"),
+        ("Exceptions", s["exceptions"], "flagged"),
+        ("Human review", s["review_required"], "attention"),
         ("Confidence", f"{avg:.0%}", "score"),
     ]
     cols = st.columns(5)
@@ -380,8 +378,8 @@ def audit_tab(results: list[dict]) -> None:
 
 def copilot_tab() -> None:
     st.markdown('<div class="section-title">✦ FinSight Copilot</div>', unsafe_allow_html=True)
-    st.markdown('<div class="copilot-hero"><span class="eyebrow">YOUR AI WORKSPACE</span><h2>Ask anything.</h2><p>Invoices, coding, study, science, writing, ideas — or anything else. Invoice decisions remain controlled by the rule engine.</p></div>', unsafe_allow_html=True)
-    prompts = ["Summarize this batch","Which invoices need review?","Explain the exceptions","Explain Python simply"]
+    st.markdown('<div class="copilot-hero"><span class="eyebrow">FINSIGHT AI WORKSPACE</span><h2>Ask FinSight.</h2><p>Ask about invoice analysis, exceptions, review routing, CSV checks, and how the FinSight workflow works. Unrelated requests are outside this Copilot's scope.</p></div>', unsafe_allow_html=True)
+    prompts = ["Summarize this batch","Which invoices need review?","Explain the exceptions","How does FinSight work?"]
     cols = st.columns(4)
     for col,prompt in zip(cols,prompts):
         with col:
