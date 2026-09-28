@@ -1,10 +1,5 @@
-"""Evidence-grounded FinSight AI assistant.
+"""Evidence-grounded FinSight AI assistant."""
 
-The LLM is deliberately not trained/fine-tuned to make accounting decisions.
-The deterministic rule engine remains the source of truth; this module adds a
-small domain knowledge layer, deterministic intent handlers, and Gemini for
-natural-language explanations over trusted results only.
-"""
 import json
 import os
 from dotenv import load_dotenv
@@ -20,6 +15,17 @@ violations are EXCEPTION and uncertain/flagged cases are routed to HUMAN REVIEW.
 The deterministic rule engine is the source of truth. AI may explain, summarize,
 or answer questions from trusted evidence, but must never change a decision.
 """.strip()
+
+
+def _secret(name):
+    value = os.getenv(name)
+    if value:
+        return value
+    try:
+        import streamlit as st
+        return st.secrets.get(name)
+    except Exception:
+        return None
 
 
 def _trusted_payload(results):
@@ -45,7 +51,6 @@ def _find_invoice(question, results):
 
 
 def deterministic_answer(question, results):
-    """Handle common AP questions without an LLM, making answers reliable."""
     if not results:
         return "No invoice analysis is loaded yet. Upload a CSV and analyze it first."
     q = question.lower().strip()
@@ -119,18 +124,19 @@ def template_chat(question, results):
 
 
 def ask_gemini(question, results, conversation=None):
-    """Return (answer, mode). Deterministic answers take priority over the LLM."""
     direct = deterministic_answer(question, results)
     if direct is not None:
         return direct, "deterministic"
-    api_key = os.getenv("GEMINI_API_KEY")
+
+    api_key = _secret("GEMINI_API_KEY")
     if not api_key:
         return template_chat(question, results), "template_fallback"
+
     try:
         from google import genai
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+            model=_secret("GEMINI_MODEL") or "gemini-2.5-flash",
             contents=build_chat_prompt(question, results, conversation),
         )
         text = (response.text or "").strip()
@@ -139,6 +145,25 @@ def ask_gemini(question, results, conversation=None):
         return text, "gemini"
     except Exception as exc:
         return template_chat(question, results), f"template_fallback: {type(exc).__name__}"
+
+
+def test_gemini_connection():
+    api_key = _secret("GEMINI_API_KEY")
+    if not api_key:
+        return False, "GEMINI_API_KEY is not configured."
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model=_secret("GEMINI_MODEL") or "gemini-2.5-flash",
+            contents="Reply with exactly: FinSight Gemini connection OK",
+        )
+        text = (response.text or "").strip()
+        if not text:
+            return False, "Gemini returned an empty response."
+        return True, text
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
 
 
 def explain_invoice(result):
