@@ -161,6 +161,15 @@ def process_invoices(df: pd.DataFrame) -> list[dict]:
         status = "CLEAN" if not reasons else "EXCEPTION"
         review = any(r.get("human_review_required", False) for r in reasons)
         rule_ids = [r["rule"] for r in reasons]
+        if not reasons:
+            confidence = 1.0
+        elif any(r["rule"] == "DUPLICATE_INVOICE" for r in reasons):
+            confidence = 0.80
+        elif any(r["rule"] == "MISSING_REQUIRED_FIELD" for r in reasons):
+            confidence = 0.95
+        else:
+            confidence = 0.99
+        route = "HUMAN_REVIEW" if review else ("AUTO_PASS" if status == "CLEAN" else "EXCEPTION")
         evidence = {
             "invoice_id": values["invoice_id"],
             "vendor": values["vendor"],
@@ -173,6 +182,8 @@ def process_invoices(df: pd.DataFrame) -> list[dict]:
         results.append({
             "invoice_id": values["invoice_id"],
             "status": status,
+            "route": route,
+            "confidence": confidence,
             "human_review_required": review,
             "rule_ids": rule_ids,
             "reasons": reasons,
