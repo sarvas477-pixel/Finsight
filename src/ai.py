@@ -37,7 +37,7 @@ MAX_HISTORY_ITEMS = 12
 MAX_HISTORY_MESSAGE_CHARS = 2500
 MAX_RESULT_ROWS_IN_PROMPT = 250
 MAX_PROMPT_CHARS = 120_000
-DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 
 
 def _secret(name: str) -> str | None:
@@ -322,15 +322,21 @@ def ask_gemini(
                 time.sleep(1.0 * (2 ** attempt))
 
         if last_error is not None:
+            error_text = str(last_error).lower()
+            if any(marker in error_text for marker in ("503", "unavailable", "temporarily", "high demand", "overloaded")):
+                return template_chat(question, results, reason="provider_unavailable"), "gemini_fallback"
             raise last_error
-        raise RuntimeError("AI request failed.")
+        return template_chat(question, results, reason="provider_unavailable"), "gemini_fallback"
     except Exception as exc:
-        # Keep the app alive, but do NOT misreport a provider failure as a
-        # missing key. This is critical for debugging invalid keys, quota
-        # limits, model access, network failures, and API changes.
+        # Never turn a provider-capacity problem into a scary frontend error.
+        # Keep deterministic invoice answers available and give the user a
+        # useful retry message for general AI questions.
+        error_text = str(exc).lower()
+        if any(marker in error_text for marker in ("503", "unavailable", "temporarily", "high demand", "overloaded")):
+            return template_chat(question, results, reason="provider_unavailable"), "gemini_fallback"
         error = f"{type(exc).__name__}: {exc}"
         return (
-            "Gemini is configured, but the request failed. "
+            "Gemini could not answer this request. "
             f"Provider error: {error}",
             f"gemini_error: {type(exc).__name__}",
         )
