@@ -55,6 +55,86 @@ button[kind="primary"]{background:var(--accent)!important;color:#fff!important;b
 )
 
 
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{--bg:#09090b;--panel:#121216;--panel2:#18181e;--text:#f6f5f2;--muted:#96959f;--line:#292932;--pink:#ff4f8b;--violet:#8b5cf6;--cyan:#42d9ff;--green:#39d98a;--amber:#ffc857}
+html,body,[class*="css"]{font-family:'DM Sans',sans-serif} .stApp{background:radial-gradient(circle at 75% 5%,#251238 0,#09090b 35%);color:var(--text)}
+.block-container{max-width:1450px;padding:34px 42px 80px}.stMarkdown,p,label,small{color:var(--text)}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important}
+[data-testid="stSidebar"]{background:#0e0e12;border-right:1px solid var(--line)} [data-testid="stSidebar"] *{color:#eee}
+.hero{border:1px solid #302b3b;background:linear-gradient(135deg,#15131b,#101015);border-radius:32px;padding:42px;overflow:hidden;position:relative;box-shadow:0 30px 90px rgba(0,0,0,.35)}
+.hero:before{content:"";position:absolute;width:480px;height:480px;right:-160px;top:-240px;border-radius:50%;background:radial-gradient(circle,#8b5cf655,transparent 65%);animation:pulse 5s ease-in-out infinite}
+.hero-grid{display:grid;grid-template-columns:1fr 360px;gap:30px;align-items:center}.eyebrow{color:#ff78a6;font-size:.72rem;font-weight:800;letter-spacing:.18em}
+.hero h1{font-size:clamp(3rem,6vw,6.5rem);line-height:.86;letter-spacing:-.075em;margin:15px 0}.hero h1 span{background:linear-gradient(90deg,#ff4f8b,#9b7bff,#42d9ff);-webkit-background-clip:text;color:transparent}
+.hero p{max-width:720px;color:#aaa8b2;font-size:1.05rem;line-height:1.7}.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}.chips span,.source-pill{border:1px solid #34343e;background:#17171d;border-radius:999px;padding:8px 12px;font-size:.75rem;color:#c9c7cf}
+.orb{height:310px;position:relative;display:grid;place-items:center}.orb-core{width:100px;height:100px;border-radius:30px;display:grid;place-items:center;background:linear-gradient(135deg,#ff4f8b,#8b5cf6);font-size:2.2rem;box-shadow:0 0 70px #9b5cff88;animation:float 4s ease-in-out infinite;z-index:2}.orb-ring{position:absolute;border:1px solid #8b5cf655;border-radius:50%;animation:spin 12s linear infinite}.r1{width:190px;height:190px}.r2{width:290px;height:290px;border-color:#42d9ff33;animation-duration:18s;animation-direction:reverse}
+.section-title{font:700 1.7rem 'Space Grotesk';letter-spacing:-.04em;margin:34px 0 14px}.feature,.panel,.copilot-hero{background:rgba(18,18,22,.88);border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 18px 55px rgba(0,0,0,.18)}.feature{min-height:155px}.feature-icon{font-size:1.5rem;color:#ff6b9b}.feature h3{margin:12px 0 5px}.feature p,.copilot-hero p{color:var(--muted);line-height:1.55}.metric{background:linear-gradient(145deg,#15151b,#101014);border:1px solid var(--line);border-radius:20px;padding:18px;min-height:95px}.metric small{display:block;color:#92909b;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em}.metric strong{display:block;font:700 2rem 'Space Grotesk';margin-top:8px}.metric.safe strong{color:var(--green)}.metric.flagged strong{color:var(--pink)}.metric.attention strong{color:var(--amber)}.metric.score strong{color:var(--cyan)}
+.copilot-hero{background:linear-gradient(135deg,#1a1220,#11131c)}.copilot-hero h2{font-size:3rem;margin:8px 0}.source-pill{display:inline-block;margin:20px 0}.footer{text-align:center;color:#666;font-size:.7rem;letter-spacing:.15em;margin-top:50px}
+div.stButton>button,div.stDownloadButton>button{border-radius:14px;border:1px solid #33333d;background:#17171d;color:#f5f4f2;min-height:44px;font-weight:700;transition:.2s}div.stButton>button:hover,div.stDownloadButton>button:hover{border-color:#ff4f8b;transform:translateY(-1px)}
+button[kind="primary"]{background:linear-gradient(90deg,#ff4f8b,#8b5cf6)!important;border:0!important;color:white!important;box-shadow:0 8px 30px #8b5cf633}
+[data-testid="stDataFrame"]{border:1px solid var(--line);border-radius:18px;overflow:hidden}
+@keyframes pulse{50%{transform:scale(1.12);opacity:.75}} @keyframes float{50%{transform:translateY(-12px) rotate(4deg)}} @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+\n"""FinSight — Streamlit AP intelligence workspace."""
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+import pandas as pd
+import streamlit as st
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
+from src.rule_engine import process_invoices, summarize_results
+
+st.set_page_config(
+    page_title="FinSight — AP Intelligence",
+    page_icon="✦",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+st.markdown(
+    """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{--bg:#f7f5f2;--paper:#fff;--ink:#202124;--muted:#77736e;--line:#e9e5df;--accent:#e34f62;--accent-soft:#fff0f2;--green:#16856f;--green-soft:#eaf8f3;--amber:#a96d19;--amber-soft:#fff6e5;--shadow:0 12px 35px rgba(31,29,25,.07)}
+html,body,[class*="css"]{font-family:'DM Sans',sans-serif;color:var(--ink)}
+.stApp{background:var(--bg)} .block-container{max-width:1480px;padding:28px 42px 70px}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important;letter-spacing:-.045em}
+[data-testid="stSidebar"]{background:#fff;border-right:1px solid var(--line)}
+[data-testid="stMetric"]{background:#fff;border:1px solid var(--line);border-radius:22px;padding:16px 18px;box-shadow:var(--shadow)}
+[data-testid="stDataFrame"]{border:1px solid var(--line);border-radius:18px;overflow:hidden}
+div.stButton>button,div.stDownloadButton>button{min-height:42px;border-radius:999px;border:1px solid var(--line);font-weight:700;background:#fff}
+button[kind="primary"]{background:var(--accent)!important;color:#fff!important;border:0!important}
+.fs-brand{font-family:'Space Grotesk';font-size:1.35rem;font-weight:700;letter-spacing:-.05em}.fs-brand span{color:var(--accent)}
+.fs-eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;font-weight:800;color:var(--accent)}
+.fs-hero{background:#fff;border:1px solid var(--line);border-radius:30px;padding:38px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.fs-hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-100px;top:-120px;background:var(--accent-soft)}
+.fs-title{font-family:'Space Grotesk';font-size:clamp(2.5rem,5vw,4.8rem);line-height:.92;letter-spacing:-.075em;max-width:900px;margin:10px 0 18px}
+.fs-copy{max-width:760px;color:var(--muted);font-size:1.03rem;line-height:1.65}
+.fs-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.fs-pill{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:.78rem;font-weight:700}
+.fs-section{font-family:'Space Grotesk';font-size:1.35rem;font-weight:700;letter-spacing:-.04em;margin:32px 0 12px}
+.fs-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:var(--shadow)}
+.fs-step{min-height:120px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px}
+.fs-step-no{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.12em}.fs-step-title{font-family:'Space Grotesk';font-size:1.08rem;font-weight:700;margin:7px 0}.fs-sub{color:var(--muted);font-size:.88rem}
+.fs-status{display:inline-block;padding:6px 10px;border-radius:999px;font-size:.72rem;font-weight:800}.fs-clean{background:var(--green-soft);color:var(--green)}.fs-exception{background:var(--accent-soft);color:#a73547}.fs-review{background:var(--amber-soft);color:var(--amber)}.fs-neutral{background:#f0eeeb;color:#5d5954}
+.fs-footer{text-align:center;color:#96918a;font-size:.76rem;margin-top:48px}
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+
+
 def init_state() -> None:
     defaults = {"df": None, "source_name": "", "results": [], "analyzed": False,
                 "audit": [], "reviews": {}, "chat": []}
@@ -127,18 +207,12 @@ def explain(item: dict) -> str:
     return f"{iid} is {item.get('status','EXCEPTION')} and routed to {item.get('route','HUMAN_REVIEW')}. {reason_text}"
 
 
-def badge(status: str, review: bool) -> str:
-    if status == "CLEAN":
-        return "fs-clean"
-    return "fs-review" if review else "fs-exception"
-
-
 def copilot(question: str) -> tuple[str, str]:
     try:
         from src.ai import ask_gemini
         return ask_gemini(question, st.session_state.results, st.session_state.chat)
     except Exception as exc:
-        return f"Copilot fallback is active ({type(exc).__name__}). The deterministic analysis is still available.", "fallback"
+        return f"Copilot fallback is active ({type(exc).__name__}).", "fallback"
 
 
 def record_review(invoice_id: str, action: str, comment: str) -> None:
@@ -156,172 +230,167 @@ def record_review(invoice_id: str, action: str, comment: str) -> None:
 
 def sidebar() -> None:
     with st.sidebar:
-        st.markdown('<div class="fs-brand">✦ <span>Fin</span>sight</div>', unsafe_allow_html=True)
-        st.caption("Accounts-payable intelligence")
-        st.divider()
-        uploaded = st.file_uploader("Upload invoice CSV", type=["csv"],
-                                    help="Required: invoice_id, vendor, amount, category, invoice_date")
+        st.markdown("### ✦ FinSight")
+        st.caption("Invoice intelligence, without the spreadsheet headache.")
+        uploaded = st.file_uploader("Drop your invoice CSV", type=["csv"])
         if uploaded is not None and uploaded.name != st.session_state.source_name:
             try:
-                frame = pd.read_csv(uploaded)
-                reset_workspace(frame, uploaded.name)
-                st.toast(f"Loaded {len(frame):,} rows", icon="✦")
+                reset_workspace(pd.read_csv(uploaded), uploaded.name)
+                st.toast("CSV loaded", icon="✦")
             except Exception as exc:
                 st.error(f"Could not read CSV: {exc}")
-        if st.button("Use sample data", use_container_width=True):
-            try:
-                reset_workspace(load_sample(), "data/invoices.csv")
-                st.toast("Sample invoices loaded", icon="✦")
-            except Exception as exc:
-                st.error(str(exc))
-        if st.button("Reset workspace", use_container_width=True):
-            reset_workspace()
-            st.rerun()
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("Sample", use_container_width=True):
+                try:
+                    reset_workspace(load_sample(), "data/invoices.csv")
+                    st.rerun()
+                except Exception as exc:
+                    st.error(str(exc))
+        with c2:
+            if st.button("Reset", use_container_width=True):
+                reset_workspace()
+                st.rerun()
         st.divider()
-        st.markdown("**Process**")
-        for n, label in [("01","Upload CSV"),("02","Analyze"),("03","Human review"),("04","Audit log"),("05","FinSight Copilot")]:
-            st.markdown(f'<div style="padding:6px 0"><span class="fs-step-no">{n}</span> <b>{label}</b></div>', unsafe_allow_html=True)
-        st.divider()
-        st.markdown("**Category limits**")
+        st.caption("Required columns")
+        st.code("invoice_id  vendor  amount  category  invoice_date", language="text")
+        st.caption("Category limits")
         for category, limit in CATEGORY_LIMITS.items():
-            st.caption(f"{category} · ₹{limit:,.0f}")
+            st.write(f"{category} · ₹{limit:,.0f}")
 
 
 def hero() -> None:
-    st.markdown(
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'
-        '<div class="fs-brand">✦ <span>Fin</span>sight</div><div class="fs-eyebrow">AP intelligence workspace</div></div>'
-        '<div class="fs-hero">'
-        '<div class="fs-eyebrow">Invoice intelligence / human in the loop</div>'
-        '<div class="fs-title">Turn the exception pile into a clear next step.</div>'
-        '<div class="fs-copy">Upload a CSV, run deterministic controls, see exactly why an invoice was flagged, '
-        'send uncertain cases to human review, keep an audit trail, and ask FinSight Copilot questions grounded in the analyzed evidence.</div>'
-        '<div class="fs-pills"><span class="fs-pill">01 Upload</span><span class="fs-pill">02 Analyze</span>'
-        '<span class="fs-pill">03 Review</span><span class="fs-pill">04 Audit</span><span class="fs-pill">05 Copilot</span></div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("""
+    <div class="hero">
+      <div class="eyebrow">FINANCE OPS · AI-ASSISTED</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Make the<br><span>exception pile</span><br>disappear.</h1>
+          <p>Upload invoices. Find problems. Understand why. Let humans decide what needs a second look.</p>
+          <div class="chips"><span>Deterministic rules</span><span>Human-in-the-loop</span><span>AI Copilot</span></div>
+        </div>
+        <div class="orb"><div class="orb-core">✦</div><div class="orb-ring r1"></div><div class="orb-ring r2"></div></div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def empty_state() -> None:
-    st.markdown('<div class="fs-section">Start with a CSV</div>', unsafe_allow_html=True)
-    cols = st.columns(5)
-    steps = [("01","Upload","Bring invoice data into the workspace."),("02","Analyze","Run the validation engine."),
-             ("03","Review","Handle flagged invoices."),("04","Audit","Track decisions and actions."),("05","Copilot","Ask grounded questions.")]
-    for col, (n, title, body) in zip(cols, steps):
+    st.markdown('<div class="section-title">Ready when you are</div>', unsafe_allow_html=True)
+    a,b,c = st.columns(3)
+    for col, icon, title, body in [
+        (a,"⌁","Drop a CSV","Your invoice data stays in the workspace."),
+        (b,"◈","Run analysis","Rules flag limits, duplicates and missing data."),
+        (c,"✦","Ask Copilot","Get answers about FinSight or general topics."),
+    ]:
         with col:
-            st.markdown(f'<div class="fs-step"><div class="fs-step-no">{n}</div><div class="fs-step-title">{title}</div><div class="fs-sub">{body}</div></div>', unsafe_allow_html=True)
-    st.info("Upload an invoice CSV from the sidebar or use the bundled sample data.")
-    st.markdown('<div class="fs-section">FinSight Copilot</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="feature"><div class="feature-icon">{icon}</div><h3>{title}</h3><p>{body}</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">FinSight Copilot</div>', unsafe_allow_html=True)
     copilot_tab()
 
 
 def summary(results: list[dict]) -> None:
     s = summarize_results(results)
-    avg = sum(float(x.get("confidence", 0)) for x in results) / len(results)
-    a,b,c,d,e = st.columns(5)
-    a.metric("Invoices", s["total"]); b.metric("Auto-pass", s["clean"]); c.metric("Exceptions", s["exceptions"])
-    d.metric("Human review", s["review_required"]); e.metric("Avg confidence", f"{avg:.0%}")
+    avg = sum(float(x.get("confidence", 0)) for x in results) / max(len(results),1)
+    vals = [
+        ("Invoices", s["total"], "total"),
+        ("Auto-pass", s["clean"], "safe"),
+        ("Exceptions", s["exceptions"], "flagged"),
+        ("Human review", s["review_required"], "attention"),
+        ("Confidence", f"{avg:.0%}", "score"),
+    ]
+    cols = st.columns(5)
+    for col,(label,value,kind) in zip(cols, vals):
+        with col:
+            st.markdown(f'<div class="metric {kind}"><small>{label}</small><strong>{value}</strong></div>', unsafe_allow_html=True)
 
 
 def results_section(df: pd.DataFrame, results: list[dict]) -> None:
-    st.markdown('<div class="fs-section">Analysis results</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Your analysis</div>', unsafe_allow_html=True)
     summary(results)
     out = build_results_df(results)
     exceptions = out[out["status"] == "EXCEPTION"].copy()
 
-    st.markdown('<div class="fs-card">', unsafe_allow_html=True)
-    st.markdown("**Decision table**")
-    st.caption("Source of truth: the deterministic rule engine.")
-    st.dataframe(out[["invoice_id","vendor","amount","category","status","route","confidence","rule_ids"]],
-                 use_container_width=True, hide_index=True,
+    st.markdown('<div class="panel">', unsafe_allow_html=True)
+    st.markdown("#### Decision stream")
+    st.caption("The rule engine is the source of truth. AI explains; it does not change decisions.")
+    show = out[["invoice_id","vendor","amount","category","status","route","confidence"]].copy()
+    st.dataframe(show, use_container_width=True, hide_index=True,
                  column_config={"confidence": st.column_config.ProgressColumn("Confidence", min_value=0, max_value=1, format="%.0f%%")})
     st.markdown("</div>", unsafe_allow_html=True)
 
     x,y,z = st.columns(3)
     with x:
-        st.download_button("Download analyzed CSV", out.to_csv(index=False).encode(), "finsight_analyzed_invoices.csv", "text/csv", use_container_width=True)
+        st.download_button("↓ Analyzed CSV", out.to_csv(index=False).encode(), "finsight_analyzed.csv", "text/csv", use_container_width=True)
     with y:
-        st.download_button(f"Download exceptions ({len(exceptions)})", exceptions.to_csv(index=False).encode(), "finsight_exceptions.csv", "text/csv", use_container_width=True)
+        st.download_button(f"↓ Exceptions ({len(exceptions)})", exceptions.to_csv(index=False).encode(), "finsight_exceptions.csv", "text/csv", use_container_width=True)
     with z:
-        st.download_button("Download original CSV", df.to_csv(index=False).encode(), "finsight_original_invoices.csv", "text/csv", use_container_width=True)
+        st.download_button("↓ Original CSV", df.to_csv(index=False).encode(), "finsight_original.csv", "text/csv", use_container_width=True)
 
-    st.markdown('<div class="fs-section">Invoice decisions</div>', unsafe_allow_html=True)
-    for item in results[:12]:
-        cls = badge(str(item.get("status")), bool(item.get("human_review_required")))
-        st.markdown(
-            f'<div class="fs-card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:12px">'
-            f'<div><b>{item.get("invoice_id")}</b> <span class="fs-status {cls}">{item.get("status")}</span> '
-            f'<span class="fs-status fs-neutral">{item.get("route")}</span></div><b>{float(item.get("confidence",0)):.0%}</b></div>'
-            f'<div class="fs-sub" style="margin-top:10px">{explain(item)}</div></div>',
-            unsafe_allow_html=True,
-        )
-    if len(results) > 12:
-        st.caption(f"Showing 12 of {len(results)} decisions. Use Evidence for the full set.")
+    st.markdown('<div class="section-title">Flagged invoices</div>', unsafe_allow_html=True)
+    flagged = [x for x in results if x.get("status") != "CLEAN"]
+    if not flagged:
+        st.success("Everything passed the configured checks.")
+    for item in flagged[:20]:
+        with st.container(border=True):
+            a,b = st.columns([5,1])
+            with a:
+                st.markdown(f"### {item.get('invoice_id')} · {item.get('status')}")
+                st.write(explain(item))
+                st.caption(" · ".join(item.get("rule_ids") or []) or "No rule IDs")
+            with b:
+                st.metric("Confidence", f"{float(item.get('confidence',0)):.0%}")
 
 
 def review_tab(results: list[dict]) -> None:
     items = [x for x in results if x.get("human_review_required")]
-    st.markdown('<div class="fs-section">Human review queue</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Human review</div>', unsafe_allow_html=True)
     if not items:
         st.success("No invoices currently require human review.")
         return
-    st.warning(f"{len(items)} invoice(s) need a human decision.")
     for item in items:
         iid = str(item.get("invoice_id"))
         old = st.session_state.reviews.get(iid, {})
         with st.container(border=True):
-            left,right = st.columns([4,1])
-            with left:
-                st.markdown(f"### {iid}")
-                st.write(explain(item))
-                for reason in item.get("reasons", []):
-                    st.markdown(f"**{reason.get('rule')}** · {reason.get('message')}")
-            with right:
-                st.metric("Confidence", f"{float(item.get('confidence',0)):.0%}")
+            st.markdown(f"### {iid}")
+            st.write(explain(item))
             note = st.text_area("Reviewer note", value=old.get("comment",""), key=f"note_{iid}")
             a,b = st.columns(2)
             with a:
-                if st.button("Approve invoice", key=f"approve_{iid}", use_container_width=True):
+                if st.button("Approve", key=f"approve_{iid}", use_container_width=True):
                     record_review(iid, "APPROVED", note); st.success(f"{iid} approved.")
             with b:
-                if st.button("Reject invoice", key=f"reject_{iid}", use_container_width=True):
+                if st.button("Reject", key=f"reject_{iid}", use_container_width=True):
                     record_review(iid, "REJECTED", note); st.warning(f"{iid} rejected.")
-            if iid in st.session_state.reviews:
-                st.caption(f"Latest action: {st.session_state.reviews[iid]['action']}")
 
 
 def evidence_tab(results: list[dict]) -> None:
-    st.markdown('<div class="fs-section">Evidence explorer</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Evidence</div>', unsafe_allow_html=True)
     ids = [str(x.get("invoice_id")) for x in results]
     selected = st.selectbox("Invoice", ids)
     item = next(x for x in results if str(x.get("invoice_id")) == selected)
     a,b,c = st.columns(3)
     a.metric("Status", item.get("status","—")); b.metric("Route", item.get("route","—")); c.metric("Confidence", f"{float(item.get('confidence',0)):.0%}")
-    st.markdown('<div class="fs-card">', unsafe_allow_html=True)
-    st.markdown("### Decision explanation"); st.write(explain(item))
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("#### Why this decision?")
+    st.write(explain(item))
     x,y = st.columns(2)
-    with x:
-        st.markdown("#### Trusted evidence"); st.json(item.get("evidence", {}))
-    with y:
-        st.markdown("#### Triggered rules"); st.json(item.get("reasons", []))
+    with x: st.markdown("**Trusted evidence**"); st.json(item.get("evidence", {}))
+    with y: st.markdown("**Triggered rules**"); st.json(item.get("reasons", []))
 
 
 def audit_tab(results: list[dict]) -> None:
-    st.markdown('<div class="fs-section">Audit log & export</div>', unsafe_allow_html=True)
-    st.caption("The local session audit always works. Supabase persistence is optional.")
+    st.markdown('<div class="section-title">Activity</div>', unsafe_allow_html=True)
     audit_df = pd.DataFrame(st.session_state.audit)
     if audit_df.empty:
-        st.info("No audit events yet.")
+        st.info("No activity yet.")
     else:
         st.dataframe(audit_df, use_container_width=True, hide_index=True)
-    out = build_results_df(results); exceptions = out[out["status"] == "EXCEPTION"]
-    a,b,c = st.columns(3)
-    with a: st.download_button("Analyzed CSV", out.to_csv(index=False).encode(), "finsight_analyzed_invoices.csv", "text/csv", use_container_width=True, key="audit_csv")
-    with b: st.download_button("Exceptions CSV", exceptions.to_csv(index=False).encode(), "finsight_exceptions.csv", "text/csv", use_container_width=True, key="audit_exceptions")
-    with c: st.download_button("Audit JSON", json.dumps(st.session_state.audit, indent=2, default=str).encode(), "finsight_audit.json", "application/json", use_container_width=True, key="audit_json")
-    if st.button("Check optional connections", use_container_width=True):
+    out = build_results_df(results)
+    exceptions = out[out["status"] == "EXCEPTION"]
+    a,b = st.columns(2)
+    with a: st.download_button("Audit JSON", json.dumps(st.session_state.audit, indent=2, default=str).encode(), "finsight_audit.json", "application/json", use_container_width=True)
+    with b: st.download_button("Analyzed CSV", out.to_csv(index=False).encode(), "finsight_analyzed.csv", "text/csv", use_container_width=True)
+    if st.button("Check connections", use_container_width=True):
         try:
             from src.ai import test_gemini_connection
             ok,msg = test_gemini_connection(); (st.success if ok else st.warning)(f"Gemini: {msg}")
@@ -333,84 +402,75 @@ def audit_tab(results: list[dict]) -> None:
 
 
 def copilot_tab() -> None:
-    st.markdown('<div class="fs-section">FinSight Copilot</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="fs-card"><div class="fs-eyebrow">General AI + FinSight intelligence</div>'
-        '<h2>Ask anything.</h2><div class="fs-sub">Ask about invoices or switch topics completely — '
-        'coding, study, science, writing, technology, ideas, or everyday questions. '
-        'Invoice decisions remain controlled by the deterministic rule engine.</div></div>',
-        unsafe_allow_html=True,
-    )
-    prompts = [
-        "Summarize this batch",
-        "Which invoices need human review?",
-        "Explain the exceptions",
-        "Explain Python lists simply",
-    ]
+    st.markdown('<div class="section-title">✦ FinSight Copilot</div>', unsafe_allow_html=True)
+    st.markdown('<div class="copilot-hero"><span class="eyebrow">YOUR AI WORKSPACE</span><h2>Ask anything.</h2><p>Invoices, coding, study, science, writing, ideas — or anything else. Invoice decisions remain controlled by the rule engine.</p></div>', unsafe_allow_html=True)
+    prompts = ["Summarize this batch","Which invoices need review?","Explain the exceptions","Explain Python simply"]
     cols = st.columns(4)
-    for col, prompt in zip(cols, prompts):
+    for col,prompt in zip(cols,prompts):
         with col:
             if st.button(prompt, key=f"quick_{prompt}", use_container_width=True):
-                answer, mode = copilot(prompt)
-                st.session_state.chat += [("user", prompt), ("assistant", answer)]
-                add_audit("AI_QUERY", "", f"{mode}: {prompt}")
+                answer,mode = copilot(prompt)
+                st.session_state.chat += [("user",prompt),("assistant",answer)]
+                add_audit("AI_QUERY","",f"{mode}: {prompt}")
                 st.rerun()
-    for role, message in st.session_state.chat:
+    for role,message in st.session_state.chat:
         with st.chat_message(role):
             st.write(message)
-    question = st.chat_input("Ask anything — invoice, coding, study, science, writing, or general knowledge...")
+    question = st.chat_input("Ask FinSight Copilot anything…")
     if question:
-        answer, mode = copilot(question)
-        st.session_state.chat += [("user", question), ("assistant", answer)]
-        add_audit("AI_QUERY", "", f"{mode}: {question}")
+        with st.spinner("Thinking…"):
+            answer,mode = copilot(question)
+        st.session_state.chat += [("user",question),("assistant",answer)]
+        add_audit("AI_QUERY","",f"{mode}: {question}")
         st.rerun()
+
 
 def workspace() -> None:
     df = st.session_state.df
-    st.markdown('<div class="fs-section">Workspace</div>', unsafe_allow_html=True)
-    st.caption(f"Source: {st.session_state.source_name or 'uploaded CSV'} · {len(df):,} row(s) · required: {', '.join(REQUIRED_COLUMNS)}")
+    st.markdown(f'<div class="source-pill">● {st.session_state.source_name} · {len(df):,} invoices loaded</div>', unsafe_allow_html=True)
     a,b = st.columns([1,3])
-    with a: run = st.button("Analyze invoices", type="primary", use_container_width=True)
-    with b: st.markdown('<div class="fs-sub" style="padding:10px 0">Results appear immediately below. No second page or manual refresh.</div>', unsafe_allow_html=True)
-    with st.expander("Preview uploaded CSV", expanded=not st.session_state.analyzed):
+    with a:
+        run = st.button("✦ Analyze invoices", type="primary", use_container_width=True)
+    with b:
+        st.caption("Results appear below instantly. Your CSV is never used to change the rule engine.")
+    with st.expander("Preview CSV"):
         st.dataframe(df.head(100), use_container_width=True, hide_index=True)
-
     if run:
         try:
-            with st.spinner("Analyzing invoices..."):
+            with st.spinner("Scanning invoices…"):
                 results = analyze(df)
-            st.session_state.results = results; st.session_state.analyzed = True
-            st.session_state.audit = []; st.session_state.reviews = {}; st.session_state.chat = []
+            st.session_state.results = results
+            st.session_state.analyzed = True
+            st.session_state.audit = []
+            st.session_state.reviews = {}
+            st.session_state.chat = []
             for item in results:
                 add_audit("DECISION", str(item.get("invoice_id")),
                           f"{item.get('status')} / {item.get('route')} / {float(item.get('confidence',0)):.0%}",
                           {"rule_ids": item.get("rule_ids", [])})
-            st.success(f"Analysis complete — {len(results):,} invoice(s) checked.")
+            st.success(f"Analysis complete · {len(results):,} invoices checked")
         except Exception as exc:
             st.error(f"Analysis failed safely: {exc}")
             return
-
     if not st.session_state.analyzed:
-        st.info("Click Analyze invoices to begin.")
+        st.info("Click Analyze invoices to start.")
         return
-
     results_section(df, st.session_state.results)
-    tabs = st.tabs(["Human review","Evidence","Audit log","FinSight Copilot"])
+    tabs = st.tabs(["Review","Evidence","Activity","✦ Copilot"])
     with tabs[0]: review_tab(st.session_state.results)
     with tabs[1]: evidence_tab(st.session_state.results)
     with tabs[2]: audit_tab(st.session_state.results)
     with tabs[3]: copilot_tab()
 
 
+st.set_page_config(page_title="FinSight", page_icon="✦", layout="wide", initial_sidebar_state="expanded")
 init_state()
 sidebar()
 hero()
-
 if st.session_state.df is None:
     empty_state()
 elif st.session_state.df.empty:
     st.error("The CSV contains no invoice rows.")
 else:
     workspace()
-
-st.markdown('<div class="fs-footer">FinSight · deterministic controls · human-in-the-loop · evidence-grounded Copilot</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">FINSIGHT · AP INTELLIGENCE · RULES + HUMAN JUDGMENT + AI</div>', unsafe_allow_html=True)
