@@ -3,22 +3,42 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 load_dotenv()
 
-def save_audit_event(event_type, invoice_id, message):
+
+def _client():
     url, key = os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY")
     if not url or not key:
-        return False, "Supabase is not configured."
+        return None
+    from supabase import create_client
+    return create_client(url, key)
+
+
+def save_audit_event(event_type, invoice_id, message, metadata=None):
+    """Best-effort persistence. The app remains fully functional without Supabase."""
     try:
-        from supabase import create_client
-        client = create_client(url, key)
-        client.table("audit_events").insert({
+        client = _client()
+        if client is None:
+            return False, "Supabase is not configured."
+        payload = {
             "event_type": event_type,
             "invoice_id": str(invoice_id),
             "message": message,
             "created_at": datetime.now(timezone.utc).isoformat(),
-        }).execute()
+        }
+        if metadata is not None:
+            payload["metadata"] = metadata
+        client.table("audit_events").insert(payload).execute()
         return True, "Saved."
     except Exception as exc:
         return False, str(exc)
 
+
 def save_review_action(invoice_id, action, comment):
     return save_audit_event("REVIEW_ACTION", invoice_id, f"{action}: {comment}".strip())
+
+
+def save_decision(result):
+    return save_audit_event(
+        "DECISION", result["invoice_id"],
+        f"{result['status']} / {result.get('route')}",
+        {"rule_ids": result["rule_ids"], "confidence": result.get("confidence")},
+    )
