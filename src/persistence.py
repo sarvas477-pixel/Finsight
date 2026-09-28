@@ -1,19 +1,42 @@
 import os
 from datetime import datetime, timezone
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
+def _secret(name):
+    value = os.getenv(name)
+    if value:
+        return value
+    try:
+        import streamlit as st
+        return st.secrets.get(name)
+    except Exception:
+        return None
+
+
 def _client():
-    url, key = os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY")
+    url, key = _secret("SUPABASE_URL"), _secret("SUPABASE_KEY")
     if not url or not key:
         return None
     from supabase import create_client
     return create_client(url, key)
 
 
+def test_supabase_connection():
+    try:
+        client = _client()
+        if client is None:
+            return False, "SUPABASE_URL / SUPABASE_KEY are not configured."
+        client.table("audit_events").select("id").limit(1).execute()
+        return True, "Supabase audit_events is reachable."
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
+
+
 def save_audit_event(event_type, invoice_id, message, metadata=None):
-    """Best-effort persistence. The app remains fully functional without Supabase."""
     try:
         client = _client()
         if client is None:
@@ -38,7 +61,8 @@ def save_review_action(invoice_id, action, comment):
 
 def save_decision(result):
     return save_audit_event(
-        "DECISION", result["invoice_id"],
+        "DECISION",
+        result["invoice_id"],
         f"{result['status']} / {result.get('route')}",
         {"rule_ids": result["rule_ids"], "confidence": result.get("confidence")},
     )
