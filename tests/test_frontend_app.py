@@ -41,7 +41,7 @@ def test_frontend_load_analyze_and_navigate():
 
     at.radio[0].set_value("Copilot").run()
     assert not at.exception, at.exception
-    at.button.get_by_key("quick_Why is INV003 flagged?").click().run()
+    at.button(key="quick_Why is INV003 flagged?").click().run()
     assert not at.exception, at.exception
     assert at.session_state.chat
     assert "INV003" in at.session_state.chat[-1][1]
