@@ -1,9 +1,8 @@
-"""FinSight — Streamlit AP intelligence workspace."""
+"""FinSight — premium Streamlit accounts-payable intelligence workspace."""
 from __future__ import annotations
 
-import json
-import sys
 from pathlib import Path
+import sys
 from typing import Any
 
 import pandas as pd
@@ -17,9 +16,8 @@ from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
 from src.rule_engine import process_invoices, summarize_results
 
 
-
 st.set_page_config(
-    page_title="FinSight — AP Intelligence",
+    page_title="FinSight · AP Intelligence",
     page_icon="✦",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -29,46 +27,64 @@ st.markdown(
     """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root{--bg:#f7f8fc;--surface:#fff;--surface2:#f1f3f8;--line:#e5e7ef;--text:#171923;--muted:#687080;--pink:#e94f8a;--violet:#7357e8;--cyan:#159fc1;--green:#168a5a;--amber:#b97900}
-html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stHeader"],[data-testid="stToolbar"]{background:var(--bg)!important;color:var(--text)!important}
-html,body,[class*="css"]{font-family:'DM Sans',sans-serif}
-.stApp{background:radial-gradient(800px 420px at 88% -10%,rgba(115,87,232,.13),transparent 65%),radial-gradient(650px 380px at -8% 35%,rgba(233,79,138,.08),transparent 65%),var(--bg)!important}
-.block-container{max-width:1480px;padding:30px 42px 70px}
+:root{
+ --bg:#07080d;--panel:#0d1018;--panel2:#111521;--line:rgba(255,255,255,.09);
+ --text:#f5f7fb;--muted:#9299ab;--violet:#8b5cf6;--pink:#ec4899;
+ --cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#fb7185;
+}
+html,body,.stApp,[data-testid="stAppViewContainer"]{background:var(--bg)!important;color:var(--text)!important}
+body,[class*="css"]{font-family:'DM Sans',sans-serif}
+[data-testid="stHeader"]{background:rgba(7,8,13,.7)!important}
+.block-container{max-width:1540px;padding:28px 38px 70px}
 h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important;color:var(--text)!important}
-p,label,span,small,.stMarkdown{color:var(--text)}
-[data-testid="stSidebar"],[data-testid="stSidebar"]>div{background:rgba(255,255,255,.92)!important;border-right:1px solid var(--line)!important}
-[data-testid="stSidebar"] *{color:var(--text)!important}.stCaption,[data-testid="stSidebar"] .stCaption{color:var(--muted)!important}hr{border-color:var(--line)!important}
-.hero{position:relative;overflow:hidden;border:1px solid #e0e2eb;border-radius:30px;padding:42px;background:linear-gradient(135deg,#fff,#f5f2ff);box-shadow:0 24px 70px rgba(35,39,60,.10);isolation:isolate}
-.hero:before{content:"";position:absolute;width:500px;height:500px;right:-200px;top:-270px;border-radius:50%;background:radial-gradient(circle,rgba(115,87,232,.22),transparent 67%);animation:glow 6s ease-in-out infinite;z-index:-1}
-.hero:after{content:"";position:absolute;width:280px;height:280px;left:38%;bottom:-250px;border-radius:50%;background:rgba(233,79,138,.09);filter:blur(70px);z-index:-1}
-.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:30px;align-items:center}
-.eyebrow{color:var(--violet)!important;font-size:.70rem;font-weight:800;letter-spacing:.20em}
-.hero h1{font-size:clamp(3.2rem,6vw,6.3rem);line-height:.86;letter-spacing:-.075em;margin:15px 0 20px}
-.hero h1 span{background:linear-gradient(90deg,var(--pink),var(--violet),var(--cyan));-webkit-background-clip:text;color:transparent}
-.hero p{max-width:700px;color:var(--muted)!important;font-size:1.05rem;line-height:1.7}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}.chips span,.source-pill{border:1px solid #dfe2ea;background:#fff;border-radius:999px;padding:8px 12px;font-size:.74rem;color:#555d6c!important;box-shadow:0 3px 12px rgba(30,35,55,.04)}
-.orb{height:290px;position:relative;display:grid;place-items:center}.orb-core{width:94px;height:94px;border-radius:28px;display:grid;place-items:center;background:linear-gradient(135deg,var(--pink),var(--violet));font-size:2rem;color:#fff!important;box-shadow:0 18px 50px rgba(115,87,232,.30);animation:float 4s ease-in-out infinite;z-index:2}.orb-ring{position:absolute;border:1px solid rgba(115,87,232,.22);border-radius:50%;animation:spin 13s linear infinite}.r1{width:180px;height:180px}.r2{width:275px;height:275px;border-color:rgba(21,159,193,.16);animation-duration:19s;animation-direction:reverse}
-.section-title{font:700 1.65rem 'Space Grotesk';letter-spacing:-.04em;margin:34px 0 14px;color:var(--text)}
-.feature,.panel,.copilot-hero,.metric{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:22px;box-shadow:0 14px 42px rgba(35,39,60,.07)}
-.feature{min-height:150px;padding:23px;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}.feature:hover{transform:translateY(-3px);border-color:#d1d4df;box-shadow:0 20px 50px rgba(35,39,60,.10)}
-.feature-icon{font-size:1.45rem;color:var(--pink)!important}.feature h3{margin:12px 0 5px}.feature p,.copilot-hero p{color:var(--muted)!important;line-height:1.55}
-.metric{padding:17px;min-height:92px}.metric small{display:block;color:var(--muted)!important;font-size:.70rem;text-transform:uppercase;letter-spacing:.12em}.metric strong{display:block;font:700 2rem 'Space Grotesk';margin-top:7px}.metric.safe strong{color:var(--green)}.metric.flagged strong{color:var(--pink)}.metric.attention strong{color:var(--amber)}.metric.score strong{color:var(--cyan)}
-.copilot-hero{padding:28px;background:linear-gradient(135deg,#fff0f7,#f2efff)}.copilot-hero h2{font-size:3rem;margin:8px 0}.panel{padding:22px}.source-pill{display:inline-block;margin:18px 0}.footer{text-align:center;color:#969baa!important;font-size:.68rem;letter-spacing:.15em;margin-top:48px}
-div.stButton>button,div.stDownloadButton>button{border-radius:13px!important;border:1px solid #d9dce5!important;background:#fff!important;color:#252938!important;min-height:44px!important;font-weight:700!important;transition:all .20s ease!important;box-shadow:0 3px 12px rgba(35,39,60,.05)!important}
-div.stButton>button:hover,div.stDownloadButton>button:hover{border-color:var(--pink)!important;transform:translateY(-1px)!important;box-shadow:0 8px 22px rgba(35,39,60,.09)!important}
-button[kind="primary"]{background:linear-gradient(100deg,var(--pink),var(--violet))!important;border:0!important;color:#fff!important;box-shadow:0 10px 28px rgba(115,87,232,.22)!important}
-[data-testid="stFileUploader"],[data-testid="stFileUploader"] section,[data-testid="stFileUploader"] section>div{background:#fff!important;border:1px dashed #cfd3df!important;border-radius:18px!important}
-[data-testid="stFileUploader"] button{background:#f4f5f8!important;color:#242837!important;border:1px solid #d8dbe4!important}[data-testid="stFileUploader"] small{color:#7b8290!important}
-.stTextInput>div>div,.stTextArea>div>div,.stSelectbox>div>div,.stNumberInput>div>div,input,textarea,[data-baseweb="select"]>div{background:#fff!important;color:var(--text)!important;border-color:#d9dce5!important}
-input::placeholder,textarea::placeholder{color:#9298a5!important}[data-baseweb="popover"],[data-baseweb="menu"]{background:#fff!important;color:var(--text)!important;border:1px solid var(--line)!important}[data-baseweb="menu"] *{color:var(--text)!important}
-[data-testid="stExpander"]{background:#fff!important;border:1px solid var(--line)!important;border-radius:18px!important}[data-testid="stExpander"] summary{color:var(--text)!important}
-[data-testid="stTabs"] [role="tab"]{color:#747b89!important;transition:color .2s ease}[data-testid="stTabs"] [role="tab"][aria-selected="true"]{color:var(--violet)!important}
-[data-testid="stDataFrame"],[data-testid="stDataFrame"]>div{background:#fff!important;border:1px solid var(--line)!important;border-radius:16px!important;overflow:hidden}
-[data-testid="stMetric"]{background:#fff!important;border:1px solid var(--line)!important;color:var(--text)!important;border-radius:18px!important}[data-testid="stMetricLabel"],[data-testid="stMetricValue"],[data-testid="stMetricDelta"]{color:var(--text)!important}
-.stAlert{background:#fff!important;color:var(--text)!important;border:1px solid var(--line)!important}[data-testid="stChatMessage"]{background:#fff!important;border:1px solid var(--line)!important;border-radius:18px!important;margin-bottom:8px}[data-testid="stChatInput"]{background:#fff!important;border-color:#d5d9e3!important}[data-testid="stChatInput"] textarea{background:#fff!important}
-[data-testid="stSpinner"]{color:var(--violet)!important}::selection{background:rgba(115,87,232,.18)}
-@keyframes glow{50%{transform:scale(1.10);opacity:.72}}@keyframes float{50%{transform:translateY(-10px) rotate(3deg)}}@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:900px){.block-container{padding:20px 16px 50px}.hero{padding:28px}.hero-grid{grid-template-columns:1fr}.orb{height:180px}.hero h1{font-size:3.6rem}}
+p,label,span,.stMarkdown{color:var(--text)}
+[data-testid="stSidebar"],[data-testid="stSidebar"]>div{
+ background:linear-gradient(180deg,#0b0d13,#08090e)!important;border-right:1px solid var(--line)!important}
+[data-testid="stSidebar"] *{color:var(--text)!important}
+[data-testid="stSidebar"] .stCaption{color:var(--muted)!important}
+hr{border-color:var(--line)!important}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.brand{font:700 1.2rem 'Space Grotesk';letter-spacing:-.04em}
+.brand span{color:var(--violet)}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green);margin-right:7px}
+.hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:30px;padding:44px;background:
+ radial-gradient(circle at 75% 25%,rgba(139,92,246,.23),transparent 28%),
+ radial-gradient(circle at 92% 80%,rgba(34,211,238,.12),transparent 25%),
+ linear-gradient(135deg,#0d1019,#0a0b11);box-shadow:0 30px 100px rgba(0,0,0,.34)}
+.hero:before{content:"";position:absolute;inset:-2px;background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.05) 45%,transparent 65%);transform:translateX(-100%);animation:scan 7s ease-in-out infinite}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:30px;align-items:center;position:relative}
+.eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.22em;color:#a78bfa!important}
+.hero h1{font-size:clamp(3rem,6vw,6.4rem);line-height:.88;letter-spacing:-.075em;margin:16px 0 22px}
+.hero h1 span{background:linear-gradient(90deg,#f472b6,#a78bfa,#22d3ee);-webkit-background-clip:text;color:transparent}
+.hero p{max-width:720px;color:#aab1c1!important;font-size:1.05rem;line-height:1.7}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}.chip{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:8px 12px;font-size:.73rem;color:#c7ccda!important}
+.orb{height:290px;position:relative;display:grid;place-items:center}.orb-core{width:100px;height:100px;border-radius:30px;display:grid;place-items:center;background:linear-gradient(135deg,var(--pink),var(--violet));font-size:2rem;color:#fff!important;box-shadow:0 0 70px rgba(139,92,246,.38);animation:float 4s ease-in-out infinite;z-index:2}.ring{position:absolute;border:1px solid rgba(167,139,250,.28);border-radius:50%;animation:spin 15s linear infinite}.r1{width:180px;height:180px}.r2{width:285px;height:285px;border-color:rgba(34,211,238,.18);animation-duration:22s;animation-direction:reverse}
+.section{font:700 1.55rem 'Space Grotesk';letter-spacing:-.04em;margin:34px 0 14px}
+.panel,.metric,.feature,.copilot{background:rgba(13,16,24,.88);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 55px rgba(0,0,0,.18)}
+.panel{padding:22px}.feature{padding:22px;min-height:145px;transition:.22s}.feature:hover{transform:translateY(-3px);border-color:rgba(167,139,250,.32);box-shadow:0 22px 60px rgba(0,0,0,.3)}
+.feature .icon{font-size:1.5rem;color:#a78bfa!important}.feature h3{margin:10px 0 5px}.feature p,.muted{color:var(--muted)!important;line-height:1.55}
+.metric{padding:18px;min-height:100px}.metric small{display:block;color:var(--muted)!important;font-size:.66rem;text-transform:uppercase;letter-spacing:.15em}.metric strong{display:block;font:700 2.05rem 'Space Grotesk';margin-top:8px}.metric.safe strong{color:var(--green)}.metric.flagged strong{color:var(--red)}.metric.attention strong{color:var(--amber)}.metric.score strong{color:var(--cyan)}
+.badge{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:.7rem;font-weight:700;background:rgba(255,255,255,.035)}
+.badge.clean{color:var(--green)!important}.badge.exception{color:var(--red)!important}.badge.review{color:var(--amber)!important}
+.copilot{padding:28px;background:radial-gradient(circle at 90% 0,rgba(139,92,246,.18),transparent 38%),#0d1018}
+.copilot h2{font-size:2.6rem;margin:7px 0}.copilot p{color:var(--muted)!important}
+div.stButton>button,div.stDownloadButton>button{border-radius:13px!important;border:1px solid var(--line)!important;background:#111521!important;color:#eef0f6!important;min-height:44px!important;font-weight:700!important;transition:.2s!important}
+div.stButton>button:hover,div.stDownloadButton>button:hover{border-color:rgba(167,139,250,.65)!important;transform:translateY(-1px)!important;box-shadow:0 10px 28px rgba(0,0,0,.25)!important}
+button[kind="primary"]{background:linear-gradient(100deg,var(--pink),var(--violet))!important;border:0!important;color:white!important;box-shadow:0 12px 34px rgba(139,92,246,.25)!important}
+[data-testid="stFileUploader"],[data-testid="stFileUploader"] section,[data-testid="stFileUploader"] section>div{background:#0d1018!important;border:1px dashed #343949!important;border-radius:18px!important}
+[data-testid="stFileUploader"] button{background:#171b26!important;color:#fff!important;border:1px solid var(--line)!important}
+.stTextInput>div>div,.stTextArea>div>div,.stSelectbox>div>div,.stNumberInput>div>div,input,textarea,[data-baseweb="select"]>div{background:#0d1018!important;color:#f5f7fb!important;border-color:#303544!important}
+input::placeholder,textarea::placeholder{color:#666e80!important}
+[data-baseweb="popover"],[data-baseweb="menu"]{background:#10131c!important;color:#fff!important;border:1px solid var(--line)!important}[data-baseweb="menu"] *{color:#fff!important}
+[data-testid="stDataFrame"],[data-testid="stDataFrame"]>div{background:#0d1018!important;border:1px solid var(--line)!important;border-radius:16px!important;overflow:hidden}
+[data-testid="stTabs"] [role="tab"]{color:#858da0!important}.stTabs [aria-selected="true"]{color:#a78bfa!important}
+[data-testid="stChatMessage"]{background:#0e121b!important;border:1px solid var(--line)!important;border-radius:18px!important;margin-bottom:9px}
+[data-testid="stChatInput"]{background:#0d1018!important;border-color:#343949!important}[data-testid="stChatInput"] textarea{background:#0d1018!important;color:#fff!important}
+[data-testid="stExpander"]{background:#0d1018!important;border:1px solid var(--line)!important;border-radius:16px!important}
+.stAlert{background:#0e121b!important;color:#fff!important;border:1px solid var(--line)!important}
+.footer{text-align:center;color:#505768!important;font-size:.65rem;letter-spacing:.15em;margin-top:48px}
+@keyframes scan{0%,55%{transform:translateX(-100%)}80%,100%{transform:translateX(100%)}}@keyframes float{50%{transform:translateY(-11px) rotate(3deg)}}@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:900px){.block-container{padding:18px 14px 50px}.hero{padding:28px}.hero-grid{grid-template-columns:1fr}.orb{height:180px}.hero h1{font-size:3.7rem}}
 </style>
 """,
     unsafe_allow_html=True,
@@ -76,10 +92,12 @@ input::placeholder,textarea::placeholder{color:#9298a5!important}[data-baseweb="
 
 
 def init_state() -> None:
-    defaults = {"df": None, "source_name": "", "results": [], "analyzed": False,
-                "audit": [], "reviews": {}, "chat": []}
-    for key, value in defaults.items():
-        st.session_state.setdefault(key, value)
+    defaults = {
+        "df": None, "source_name": "", "results": [], "analyzed": False,
+        "audit": [], "reviews": {}, "chat": [], "page": "Overview",
+    }
+    for k, v in defaults.items():
+        st.session_state.setdefault(k, v)
 
 
 def reset_workspace(df: pd.DataFrame | None = None, source_name: str = "") -> None:
@@ -93,19 +111,17 @@ def reset_workspace(df: pd.DataFrame | None = None, source_name: str = "") -> No
 
 
 def load_sample() -> pd.DataFrame:
-    path = ROOT / "data" / "invoices.csv"
-    if not path.exists():
-        raise FileNotFoundError("Bundled sample data/invoices.csv is missing.")
-    return pd.read_csv(path)
+    return pd.read_csv(ROOT / "data" / "invoices.csv")
 
 
 def add_audit(event: str, invoice_id: str = "", message: str = "", metadata: dict | None = None) -> None:
-    st.session_state.audit.append({
+    record = {
         "timestamp": pd.Timestamp.now(tz="UTC").isoformat(),
         "event": event,
         "invoice_id": str(invoice_id),
         "message": message,
-    })
+    }
+    st.session_state.audit.append(record)
     try:
         from src.persistence import save_audit_event
         save_audit_event(event, invoice_id, message, metadata)
@@ -114,169 +130,156 @@ def add_audit(event: str, invoice_id: str = "", message: str = "", metadata: dic
 
 
 def analyze(df: pd.DataFrame) -> list[dict]:
-    from src.copilot_workflow import analyze_invoice_workflow
-    return analyze_invoice_workflow(df)["results"]
+    return process_invoices(df)
 
 
 def build_results_df(results: list[dict]) -> pd.DataFrame:
-    rows = []
-    for item in results:
-        evidence = item.get("evidence") or {}
-        reasons = item.get("reasons") or []
-        rows.append({
-            "invoice_id": item.get("invoice_id"),
-            "vendor": evidence.get("vendor"),
-            "amount": evidence.get("amount"),
-            "category": evidence.get("category"),
-            "invoice_date": evidence.get("invoice_date"),
-            "status": item.get("status"),
-            "route": item.get("route"),
-            "confidence": float(item.get("confidence", 0)),
-            "human_review_required": bool(item.get("human_review_required")),
-            "rule_ids": ", ".join(item.get("rule_ids") or []),
-            "reasons": " | ".join(str(r.get("message", "")) for r in reasons),
-            "matched_invoice_id": evidence.get("matched_invoice_id"),
-        })
-    return pd.DataFrame(rows)
+    return pd.DataFrame([
+        {
+            "invoice_id": r.get("invoice_id"),
+            "vendor": (r.get("evidence") or {}).get("vendor"),
+            "amount": (r.get("evidence") or {}).get("amount"),
+            "category": (r.get("evidence") or {}).get("category"),
+            "invoice_date": (r.get("evidence") or {}).get("invoice_date"),
+            "status": r.get("status"),
+            "route": r.get("route"),
+            "confidence": float(r.get("confidence", 0)),
+            "human_review_required": bool(r.get("human_review_required")),
+            "rule_ids": ", ".join(r.get("rule_ids") or []),
+            "reasons": " | ".join(str(x.get("message", "")) for x in r.get("reasons", [])),
+            "matched_invoice_id": (r.get("evidence") or {}).get("matched_invoice_id"),
+        }
+        for r in results
+    ])
 
 
-def explain(item: dict) -> str:
-    iid = item.get("invoice_id", "Invoice")
-    if item.get("status") == "CLEAN":
-        return f"{iid} passed all configured checks and is AUTO-PASS with {float(item.get('confidence',1)):.0%} confidence."
-    reason_text = " ".join(str(x.get("message", "")) for x in item.get("reasons", []))
-    return f"{iid} is {item.get('status','EXCEPTION')} and routed to {item.get('route','HUMAN_REVIEW')}. {reason_text}"
+def explain(r: dict) -> str:
+    if r.get("status") == "CLEAN":
+        return f"{r.get('invoice_id')} passed every configured deterministic check and is AUTO-PASS."
+    reasons = " ".join(str(x.get("message", "")) for x in r.get("reasons", []))
+    return f"{r.get('invoice_id')} is an EXCEPTION and is routed to {r.get('route')}. {reasons}"
 
 
-def copilot(question: str) -> tuple[str, str]:
+def run_analysis() -> None:
+    df = st.session_state.df
+    if df is None:
+        st.warning("Upload a CSV or load the sample first.")
+        return
     try:
-        from src.copilot_workflow import copilot_workflow
-        response = copilot_workflow(
-            question,
-            st.session_state.results,
-            st.session_state.chat,
-        )
-        return response["answer"], response["mode"]
+        results = analyze(df)
+        st.session_state.results = results
+        st.session_state.analyzed = True
+        s = summarize_results(results)
+        add_audit("ANALYSIS_RUN", "", f"{st.session_state.source_name}: {s['total']} invoices analyzed.", {"summary": s})
+        for r in results:
+            add_audit("DECISION", r.get("invoice_id", ""), f"{r.get('status')} / {r.get('route')}", {"rule_ids": r.get("rule_ids", []), "confidence": r.get("confidence")})
+        st.toast("Analysis complete", icon="✦")
     except Exception as exc:
-        return f"Copilot fallback is active ({type(exc).__name__}).", "fallback"
-
-
-def record_review(invoice_id: str, action: str, comment: str) -> None:
-    st.session_state.reviews[invoice_id] = {
-        "action": action, "comment": comment.strip(),
-        "timestamp": pd.Timestamp.now(tz="UTC").isoformat(),
-    }
-    add_audit("REVIEW_ACTION", invoice_id, f"{action}: {comment.strip()}".strip())
-    try:
-        from src.persistence import save_review_action
-        save_review_action(invoice_id, action, comment.strip())
-    except Exception:
-        pass
+        st.session_state.analyzed = False
+        st.error(f"Analysis failed: {exc}")
 
 
 def sidebar() -> None:
     with st.sidebar:
-        st.markdown("### ✦ FinSight")
-        st.caption("Invoice intelligence, without the spreadsheet headache.")
-        uploaded = st.file_uploader("Drop your invoice CSV", type=["csv"])
+        st.markdown("## ✦ FinSight")
+        st.caption("AP intelligence workspace")
+        st.markdown('<span class="badge"><span class="status-dot"></span>Deterministic engine online</span>', unsafe_allow_html=True)
+        st.divider()
+        page = st.radio(
+            "Workspace",
+            ["Overview", "Analyze", "Review", "Evidence", "Copilot", "System"],
+            key="page",
+            label_visibility="collapsed",
+        )
+        st.divider()
+        uploaded = st.file_uploader("Invoice CSV", type=["csv"], help="Required: invoice_id, vendor, amount, category, invoice_date")
         if uploaded is not None and uploaded.name != st.session_state.source_name:
             try:
                 reset_workspace(pd.read_csv(uploaded), uploaded.name)
-                st.toast("CSV loaded", icon="✦")
+                st.toast(f"{uploaded.name} loaded", icon="✦")
             except Exception as exc:
                 st.error(f"Could not read CSV: {exc}")
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button("Sample", use_container_width=True):
-                try:
-                    reset_workspace(load_sample(), "data/invoices.csv")
-                    st.rerun()
-                except Exception as exc:
-                    st.error(str(exc))
-        with c2:
+        a, b = st.columns(2)
+        with a:
+            if st.button("Load sample", use_container_width=True):
+                reset_workspace(load_sample(), "data/invoices.csv")
+                st.rerun()
+        with b:
             if st.button("Reset", use_container_width=True):
                 reset_workspace()
                 st.rerun()
         st.divider()
         st.caption("Required columns")
-        st.code("invoice_id  vendor  amount  category  invoice_date", language="text")
-        st.caption("Category limits")
-        for category, limit in CATEGORY_LIMITS.items():
-            st.write(f"{category} · ₹{limit:,.0f}")
+        st.code("\n".join(REQUIRED_COLUMNS), language="text")
+        st.caption("Configured limits")
+        for cat, limit in CATEGORY_LIMITS.items():
+            st.write(f"{cat} · ₹{limit:,.0f}")
+
+
+def topbar() -> None:
+    source = st.session_state.source_name or "No dataset loaded"
+    st.markdown(
+        f'<div class="topbar"><div class="brand">FINSIGHT <span>/ AP INTELLIGENCE</span></div>'
+        f'<div class="badge"><span class="status-dot"></span>{source}</div></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def hero() -> None:
-    st.markdown("""
-    <div class="hero">
-      <div class="eyebrow">FINANCE OPS · AI-ASSISTED</div>
-      <div class="hero-grid">
-        <div>
-          <h1>Make the<br><span>exception pile</span><br>disappear.</h1>
-          <p>Upload invoices. Find problems. Understand why. Let humans decide what needs a second look.</p>
-          <div class="chips"><span>Deterministic rules</span><span>Human-in-the-loop</span><span>AI Copilot</span></div>
-        </div>
-        <div class="orb"><div class="orb-core">✦</div><div class="orb-ring r1"></div><div class="orb-ring r2"></div></div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        """
+<div class="hero"><div class="hero-grid"><div>
+<div class="eyebrow">FINANCE OPERATIONS · RULES + EVIDENCE + AI</div>
+<h1>Turn the<br><span>exception pile</span><br>into clarity.</h1>
+<p>Analyze invoice CSVs with deterministic rules, see the exact evidence behind every decision, route uncertain cases to humans, and ask FinSight Copilot to explain the result.</p>
+<div class="chips"><span class="chip">Deterministic decisions</span><span class="chip">Human review</span><span class="chip">Audit trail</span><span class="chip">AI explanations</span></div>
+</div><div class="orb"><div class="orb-core">✦</div><div class="ring r1"></div><div class="ring r2"></div></div></div></div>
+""",
+        unsafe_allow_html=True,
+    )
 
 
-def empty_state() -> None:
-    st.markdown('<div class="section-title">Ready when you are</div>', unsafe_allow_html=True)
-    a,b,c = st.columns(3)
-    for col, icon, title, body in [
-        (a,"⌁","Drop a CSV","Your invoice data stays in the workspace."),
-        (b,"◈","Run analysis","Rules flag limits, duplicates and missing data."),
-        (c,"✦","Ask Copilot","Get answers about FinSight invoices, exceptions, and app usage."),
-    ]:
-        with col:
-            st.markdown(f'<div class="feature"><div class="feature-icon">{icon}</div><h3>{title}</h3><p>{body}</p></div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">FinSight Copilot</div>', unsafe_allow_html=True)
-    copilot_tab()
-
-
-def summary(results: list[dict]) -> None:
+def metrics(results: list[dict]) -> None:
     s = summarize_results(results)
-    avg = sum(float(x.get("confidence", 0)) for x in results) / max(len(results),1)
-    # Exception status and human-review routing are separate concepts.
-    vals = [
-        ("Invoices", s["total"], "total"),
-        ("Auto-pass", s["clean"], "safe"),
-        ("Exceptions", s["exceptions"], "flagged"),
-        ("Human review", s["review_required"], "attention"),
-        ("Confidence", f"{avg:.0%}", "score"),
-    ]
+    avg = sum(float(r.get("confidence", 0)) for r in results) / len(results) if results else 0
+    vals = [("Invoices", s["total"], ""), ("Auto-pass", s["clean"], "safe"), ("Exceptions", s["exceptions"], "flagged"), ("Human review", s["review_required"], "attention"), ("Confidence", f"{avg:.0%}", "score")]
     cols = st.columns(5)
-    for col,(label,value,kind) in zip(cols, vals):
-        with col:
+    for c, (label, value, kind) in zip(cols, vals):
+        with c:
             st.markdown(f'<div class="metric {kind}"><small>{label}</small><strong>{value}</strong></div>', unsafe_allow_html=True)
 
 
-def results_section(df: pd.DataFrame, results: list[dict]) -> None:
-    st.markdown('<div class="section-title">Your analysis</div>', unsafe_allow_html=True)
-    summary(results)
+def analysis_page() -> None:
+    st.markdown('<div class="section">Analyze</div>', unsafe_allow_html=True)
+    if st.session_state.df is None:
+        st.markdown('<div class="panel"><h3>Start with an invoice CSV</h3><p class="muted">Use the uploader in the sidebar or load the bundled sample. FinSight will validate the schema before running the rule engine.</p></div>', unsafe_allow_html=True)
+        return
+    df = st.session_state.df
+    c1, c2 = st.columns([4, 1])
+    with c1:
+        st.markdown(f"**{st.session_state.source_name}** · {len(df):,} source rows")
+        st.caption("Required schema: " + " · ".join(REQUIRED_COLUMNS))
+    with c2:
+        if st.button("✦ Analyze now", type="primary", use_container_width=True):
+            run_analysis()
+    st.markdown('<div class="section">Source preview</div>', unsafe_allow_html=True)
+    st.dataframe(df.head(100), use_container_width=True, hide_index=True)
+    if not st.session_state.analyzed:
+        return
+    results = st.session_state.results
+    st.markdown('<div class="section">Decision stream</div>', unsafe_allow_html=True)
+    metrics(results)
     out = build_results_df(results)
-    exceptions = out[out["status"] == "EXCEPTION"].copy()
-
-    st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown("#### Decision stream")
-    st.caption("The rule engine is the source of truth. AI explains; it does not change decisions.")
-    show = out[["invoice_id","vendor","amount","category","status","route","confidence"]].copy()
-    st.dataframe(show, use_container_width=True, hide_index=True,
-                 column_config={"confidence": st.column_config.ProgressColumn("Confidence", min_value=0, max_value=1, format="%.0f%%")})
-    st.markdown("</div>", unsafe_allow_html=True)
-
+    st.dataframe(
+        out[["invoice_id","vendor","amount","category","status","route","confidence","human_review_required"]],
+        use_container_width=True, hide_index=True,
+        column_config={"confidence": st.column_config.ProgressColumn("Confidence", min_value=0, max_value=1, format="%.0f%%")},
+    )
+    exceptions = out[out.status == "EXCEPTION"].copy()
     if not exceptions.empty:
-        st.markdown('<div class="panel">', unsafe_allow_html=True)
-        st.markdown("#### Exception details")
-        st.caption("These are the rows that failed one or more configured validation rules.")
-        exception_show = exceptions[
-            ["invoice_id", "vendor", "amount", "category", "status", "route", "rule_ids", "reasons"]
-        ].copy()
-        st.dataframe(exception_show, use_container_width=True, hide_index=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    x,y,z = st.columns(3)
+        st.markdown('<div class="section">Exception details</div>', unsafe_allow_html=True)
+        st.dataframe(exceptions[["invoice_id","vendor","amount","category","rule_ids","reasons","route"]], use_container_width=True, hide_index=True)
+    x, y, z = st.columns(3)
     with x:
         st.download_button("↓ Analyzed CSV", out.to_csv(index=False).encode(), "finsight_analyzed.csv", "text/csv", use_container_width=True)
     with y:
@@ -284,167 +287,178 @@ def results_section(df: pd.DataFrame, results: list[dict]) -> None:
     with z:
         st.download_button("↓ Original CSV", df.to_csv(index=False).encode(), "finsight_original.csv", "text/csv", use_container_width=True)
 
-    st.markdown('<div class="section-title">Exception queue</div>', unsafe_allow_html=True)
-    st.caption("Every invoice with status EXCEPTION is shown here, including exceptions that require human review.")
 
-    view = st.radio(
-        "Show",
-        ["All", "Exceptions only", "Clean only"],
-        horizontal=True,
-        label_visibility="collapsed",
-        key="results_view",
-    )
-    if view == "Exceptions only":
-        visible = [x for x in results if str(x.get("status", "")).upper() == "EXCEPTION"]
-    elif view == "Clean only":
-        visible = [x for x in results if str(x.get("status", "")).upper() == "CLEAN"]
-    else:
-        visible = results
-
-    flagged = [x for x in results if str(x.get("status", "")).upper() == "EXCEPTION"]
-    if not flagged:
-        st.success("Everything passed the configured checks.")
-    elif view == "Exceptions only":
-        st.success(f"{len(flagged)} exception(s) detected.")
-    for item in visible[:50]:
-        with st.container(border=True):
-            a,b = st.columns([5,1])
-            with a:
-                st.markdown(f"### {item.get('invoice_id')} · {item.get('status')}")
-                st.write(explain(item))
-                st.caption(" · ".join(item.get("rule_ids") or []) or "No rule IDs")
-            with b:
-                st.metric("Confidence", f"{float(item.get('confidence',0)):.0%}")
-
-
-def review_tab(results: list[dict]) -> None:
-    items = [x for x in results if x.get("human_review_required")]
-    st.markdown('<div class="section-title">Human review</div>', unsafe_allow_html=True)
+def review_page() -> None:
+    st.markdown('<div class="section">Human review queue</div>', unsafe_allow_html=True)
+    items = [r for r in st.session_state.results if r.get("human_review_required")]
     if not items:
-        st.success("No invoices currently require human review.")
+        st.info("No invoices currently require human review.")
         return
-    for item in items:
-        iid = str(item.get("invoice_id"))
+    st.caption(f"{len(items)} invoice(s) require a human decision. FinSight does not let AI approve or reject them.")
+    for r in items:
+        iid = str(r.get("invoice_id"))
         old = st.session_state.reviews.get(iid, {})
         with st.container(border=True):
             st.markdown(f"### {iid}")
-            st.write(explain(item))
-            note = st.text_area("Reviewer note", value=old.get("comment",""), key=f"note_{iid}")
-            a,b = st.columns(2)
+            st.write(explain(r))
+            with st.expander("Evidence & reasons", expanded=False):
+                st.json({"evidence": r.get("evidence"), "rule_ids": r.get("rule_ids"), "reasons": r.get("reasons"), "confidence": r.get("confidence")})
+            note = st.text_area("Reviewer note", value=old.get("comment", ""), key=f"review_note_{iid}")
+            a, b = st.columns(2)
             with a:
                 if st.button("Approve", key=f"approve_{iid}", use_container_width=True):
-                    record_review(iid, "APPROVED", note); st.success(f"{iid} approved.")
+                    st.session_state.reviews[iid] = {"action":"APPROVED","comment":note.strip(),"timestamp":pd.Timestamp.now(tz="UTC").isoformat()}
+                    add_audit("REVIEW_ACTION", iid, f"APPROVED: {note.strip()}")
+                    try:
+                        from src.persistence import save_review_action
+                        save_review_action(iid, "APPROVED", note.strip())
+                    except Exception:
+                        pass
+                    st.success(f"{iid} marked APPROVED.")
             with b:
                 if st.button("Reject", key=f"reject_{iid}", use_container_width=True):
-                    record_review(iid, "REJECTED", note); st.warning(f"{iid} rejected.")
+                    st.session_state.reviews[iid] = {"action":"REJECTED","comment":note.strip(),"timestamp":pd.Timestamp.now(tz="UTC").isoformat()}
+                    add_audit("REVIEW_ACTION", iid, f"REJECTED: {note.strip()}")
+                    try:
+                        from src.persistence import save_review_action
+                        save_review_action(iid, "REJECTED", note.strip())
+                    except Exception:
+                        pass
+                    st.warning(f"{iid} marked REJECTED.")
 
 
-def evidence_tab(results: list[dict]) -> None:
-    st.markdown('<div class="section-title">Evidence</div>', unsafe_allow_html=True)
-    ids = [str(x.get("invoice_id")) for x in results]
+def evidence_page() -> None:
+    st.markdown('<div class="section">Evidence explorer</div>', unsafe_allow_html=True)
+    if not st.session_state.results:
+        st.info("Analyze a CSV first.")
+        return
+    ids = [str(r.get("invoice_id")) for r in st.session_state.results]
     selected = st.selectbox("Invoice", ids)
-    item = next(x for x in results if str(x.get("invoice_id")) == selected)
+    r = next(x for x in st.session_state.results if str(x.get("invoice_id")) == selected)
+    badge = "clean" if r.get("status") == "CLEAN" else "exception"
+    st.markdown(f'<span class="badge {badge}">● {r.get("status")}</span> <span class="badge">{r.get("route")}</span>', unsafe_allow_html=True)
     a,b,c = st.columns(3)
-    a.metric("Status", item.get("status","—")); b.metric("Route", item.get("route","—")); c.metric("Confidence", f"{float(item.get('confidence',0)):.0%}")
-    st.markdown("#### Why this decision?")
-    st.write(explain(item))
-    x,y = st.columns(2)
-    with x: st.markdown("**Trusted evidence**"); st.json(item.get("evidence", {}))
-    with y: st.markdown("**Triggered rules**"); st.json(item.get("reasons", []))
-
-
-def audit_tab(results: list[dict]) -> None:
-    st.markdown('<div class="section-title">Activity</div>', unsafe_allow_html=True)
-    audit_df = pd.DataFrame(st.session_state.audit)
-    if audit_df.empty:
-        st.info("No activity yet.")
+    a.metric("Confidence", f"{float(r.get('confidence',0)):.0%}")
+    b.metric("Rule flags", len(r.get("rule_ids") or []))
+    c.metric("Human review", "Required" if r.get("human_review_required") else "Not required")
+    st.markdown('<div class="section">Why this happened</div>', unsafe_allow_html=True)
+    if not r.get("reasons"):
+        st.success("No rule violations. This invoice passed all configured checks.")
     else:
-        st.dataframe(audit_df, use_container_width=True, hide_index=True)
-    out = build_results_df(results)
-    exceptions = out[out["status"] == "EXCEPTION"]
-    a,b = st.columns(2)
-    with a: st.download_button("Audit JSON", json.dumps(st.session_state.audit, indent=2, default=str).encode(), "finsight_audit.json", "application/json", use_container_width=True)
-    with b: st.download_button("Analyzed CSV", out.to_csv(index=False).encode(), "finsight_analyzed.csv", "text/csv", use_container_width=True)
-    if st.button("Check connections", use_container_width=True):
-        try:
-            from src.ai import test_gemini_connection
-            ok,msg = test_gemini_connection(); (st.success if ok else st.warning)(f"Gemini: {msg}")
-        except Exception as exc: st.warning(f"Gemini check unavailable: {exc}")
-        try:
-            from src.persistence import test_supabase_connection
-            ok,msg = test_supabase_connection(); (st.success if ok else st.warning)(f"Supabase: {msg}")
-        except Exception as exc: st.warning(f"Supabase check unavailable: {exc}")
+        for reason in r["reasons"]:
+            with st.expander(f"{reason.get('rule')} · {reason.get('message')}", expanded=True):
+                st.write("Actual:", reason.get("actual_value"))
+                st.write("Expected:", reason.get("expected_value"))
+                if reason.get("matched_invoice_id"):
+                    st.write("Matched invoice:", reason.get("matched_invoice_id"))
+    st.markdown('<div class="section">Trusted evidence</div>', unsafe_allow_html=True)
+    st.json(r.get("evidence") or {})
 
 
-def copilot_tab() -> None:
-    st.markdown('<div class="section-title">✦ FinSight Copilot</div>', unsafe_allow_html=True)
-    st.markdown('<div class="copilot-hero"><span class="eyebrow">FINSIGHT AI WORKSPACE</span><h2>Ask FinSight.</h2><p>Ask about invoice analysis, exceptions, review routing, CSV checks, and how the FinSight workflow works. Unrelated requests are outside this Copilot's scope.</p></div>', unsafe_allow_html=True)
-    prompts = ["Summarize this batch","Which invoices need review?","Explain the exceptions","How does FinSight work?"]
-    cols = st.columns(4)
-    for col,prompt in zip(cols,prompts):
-        with col:
-            if st.button(prompt, key=f"quick_{prompt}", use_container_width=True):
-                answer,mode = copilot(prompt)
-                st.session_state.chat += [("user",prompt),("assistant",answer)]
-                add_audit("AI_QUERY","",f"{mode}: {prompt}")
+def copilot_page() -> None:
+    st.markdown('<div class="copilot"><div class="eyebrow">FINSIGHT AI WORKSPACE</div><h2>Ask FinSight.</h2><p>Get clear explanations of invoice decisions, exception patterns, review routing, CSV checks, audit activity, and how the app works. Off-topic requests are intentionally outside scope.</p></div>', unsafe_allow_html=True)
+    if not st.session_state.results:
+        st.info("Upload and analyze a CSV first for invoice-specific answers. You can still ask how FinSight works.")
+    quick = ["Summarize this batch", "Which invoices need review?", "Explain every exception", "Why is INV003 flagged?", "How does FinSight decide?"]
+    cols = st.columns(len(quick))
+    for c, prompt in zip(cols, quick):
+        with c:
+            if st.button(prompt, key="quick_"+prompt, use_container_width=True):
+                st.session_state.chat.append(("user", prompt))
+                from src.copilot_workflow import copilot_workflow
+                answer, mode = copilot_workflow(prompt, st.session_state.results, st.session_state.chat[:-1])["answer"], copilot_workflow(prompt, st.session_state.results, st.session_state.chat[:-1])["mode"]
+                st.session_state.chat.append(("assistant", answer, mode))
                 st.rerun()
-    for role,message in st.session_state.chat:
+    for item in st.session_state.chat:
+        role = item[0]
+        content = item[1]
         with st.chat_message(role):
-            st.write(message)
-    question = st.chat_input("Ask FinSight Copilot anything…")
+            st.markdown(content)
+            if role == "assistant" and len(item) > 2:
+                st.caption(f"Source: {item[2]}")
+    question = st.chat_input("Ask FinSight about this analysis…")
     if question:
-        with st.spinner("Thinking…"):
-            answer,mode = copilot(question)
-        st.session_state.chat += [("user",question),("assistant",answer)]
-        add_audit("AI_QUERY","",f"{mode}: {question}")
+        from src.copilot_workflow import copilot_workflow
+        st.session_state.chat.append(("user", question))
+        response = copilot_workflow(question, st.session_state.results, st.session_state.chat[:-1])
+        st.session_state.chat.append(("assistant", response["answer"], response["mode"]))
         st.rerun()
 
 
-def workspace() -> None:
-    df = st.session_state.df
-    st.markdown(f'<div class="source-pill">● {st.session_state.source_name} · {len(df):,} invoices loaded</div>', unsafe_allow_html=True)
-    a,b = st.columns([1,3])
+def system_page() -> None:
+    st.markdown('<div class="section">System health</div>', unsafe_allow_html=True)
+    st.caption("These checks report the actual server-side configuration available to this Streamlit session.")
+    try:
+        from src.ai import test_gemini_connection
+        gem_ok, gem_msg = test_gemini_connection()
+    except Exception as exc:
+        gem_ok, gem_msg = False, f"{type(exc).__name__}: {exc}"
+    try:
+        from src.persistence import test_supabase_connection
+        sb_ok, sb_msg = test_supabase_connection()
+    except Exception as exc:
+        sb_ok, sb_msg = False, f"{type(exc).__name__}: {exc}"
+    a,b = st.columns(2)
     with a:
-        run = st.button("✦ Analyze invoices", type="primary", use_container_width=True)
+        st.markdown(f'<div class="panel"><h3>Gemini</h3><p class="muted">{"Connected" if gem_ok else "Not connected"}</p><p class="muted">{gem_msg}</p></div>', unsafe_allow_html=True)
     with b:
-        st.caption("Results appear below instantly. Your CSV is never used to change the rule engine.")
-    with st.expander("Preview CSV"):
-        st.dataframe(df.head(100), use_container_width=True, hide_index=True)
-    if run:
-        try:
-            with st.spinner("Scanning invoices…"):
-                results = analyze(df)
-            st.session_state.results = results
-            st.session_state.analyzed = True
-            st.session_state.audit = []
-            st.session_state.reviews = {}
-            st.session_state.chat = []
-            for item in results:
-                add_audit("DECISION", str(item.get("invoice_id")),
-                          f"{item.get('status')} / {item.get('route')} / {float(item.get('confidence',0)):.0%}",
-                          {"rule_ids": item.get("rule_ids", [])})
-            st.success(f"Analysis complete · {len(results):,} invoices checked")
-        except Exception as exc:
-            st.error(f"Analysis failed safely: {exc}")
-            return
-    if not st.session_state.analyzed:
-        st.info("Click Analyze invoices to start.")
+        st.markdown(f'<div class="panel"><h3>Supabase</h3><p class="muted">{"Connected" if sb_ok else "Not connected"}</p><p class="muted">{sb_msg}</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section">Architecture</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="panel"><b>CSV → Python rule engine → trusted result → Copilot explanation</b><br><span class="muted">The AI layer cannot alter invoice status, route, confidence, rule IDs, or evidence.</span></div>',
+        unsafe_allow_html=True,
+    )
+    if st.session_state.audit:
+        st.markdown('<div class="section">Session audit</div>', unsafe_allow_html=True)
+        st.dataframe(pd.DataFrame(st.session_state.audit), use_container_width=True, hide_index=True)
+
+
+def overview_page() -> None:
+    hero()
+    if st.session_state.df is None:
+        st.markdown('<div class="section">One workspace. Four decisions.</div>', unsafe_allow_html=True)
+        cols = st.columns(4)
+        cards = [
+            ("01","Validate","Schema, missing values, amounts, dates and categories."),
+            ("02","Detect","Limits, duplicate IDs and possible duplicate invoices."),
+            ("03","Review","Evidence-first queue for cases needing a human."),
+            ("04","Explain","Copilot explains the deterministic result in plain language."),
+        ]
+        for c,(n,t,b) in zip(cols,cards):
+            with c:
+                st.markdown(f'<div class="feature"><div class="icon">{n}</div><h3>{t}</h3><p>{b}</p></div>',unsafe_allow_html=True)
+        st.markdown('<div class="section">Start here</div>', unsafe_allow_html=True)
+        if st.button("Load bundled sample →", type="primary"):
+            reset_workspace(load_sample(), "data/invoices.csv")
+            st.session_state.page = "Analyze"
+            st.rerun()
         return
-    results_section(df, st.session_state.results)
-    tabs = st.tabs(["Review","Evidence","Activity","✦ Copilot"])
-    with tabs[0]: review_tab(st.session_state.results)
-    with tabs[1]: evidence_tab(st.session_state.results)
-    with tabs[2]: audit_tab(st.session_state.results)
-    with tabs[3]: copilot_tab()
+    st.markdown('<div class="section">Workspace snapshot</div>', unsafe_allow_html=True)
+    if st.session_state.analyzed:
+        metrics(st.session_state.results)
+        st.markdown('<div class="panel"><b>Next:</b> open Analyze for the complete decision stream, Review for human actions, Evidence for rule-level proof, or Copilot for explanations.</div>', unsafe_allow_html=True)
+    else:
+        st.info(f"{st.session_state.source_name} is loaded with {len(st.session_state.df):,} rows. Open Analyze and run the deterministic engine.")
 
 
-init_state()
-sidebar()
-hero()
-if st.session_state.df is None:
-    empty_state()
-elif st.session_state.df.empty:
-    st.error("The CSV contains no invoice rows.")
-else:
-    workspace()
-st.markdown('<div class="footer">FINSIGHT · AP INTELLIGENCE · RULES + HUMAN JUDGMENT + AI</div>', unsafe_allow_html=True)
+def main() -> None:
+    init_state()
+    sidebar()
+    topbar()
+    page = st.session_state.page
+    if page == "Overview":
+        overview_page()
+    elif page == "Analyze":
+        analysis_page()
+    elif page == "Review":
+        review_page()
+    elif page == "Evidence":
+        evidence_page()
+    elif page == "Copilot":
+        copilot_page()
+    else:
+        system_page()
+    st.markdown('<div class="footer">FINSIGHT · DETERMINISTIC DECISIONS · HUMAN JUDGMENT · AI EXPLANATION</div>', unsafe_allow_html=True)
+
+
+main()
