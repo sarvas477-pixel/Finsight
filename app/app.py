@@ -171,7 +171,7 @@ def run_analysis() -> None:
         add_audit("ANALYSIS_RUN", "", f"{st.session_state.source_name}: {s['total']} invoices analyzed.", {"summary": s})
         for r in results:
             add_audit("DECISION", r.get("invoice_id", ""), f"{r.get('status')} / {r.get('route')}", {"rule_ids": r.get("rule_ids", []), "confidence": r.get("confidence")})
-        st.toast("Analysis complete", icon="✦")
+        st.toast("Analysis complete", icon="✨")
     except Exception as exc:
         st.session_state.analyzed = False
         st.error(f"Analysis failed: {exc}")
@@ -199,7 +199,7 @@ def sidebar() -> None:
         if uploaded is not None and uploaded.name != st.session_state.source_name:
             try:
                 reset_workspace(pd.read_csv(uploaded), uploaded.name)
-                st.toast(f"{uploaded.name} loaded", icon="✦")
+                st.toast(f"{uploaded.name} loaded", icon="✨")
             except Exception as exc:
                 st.error(f"Could not read CSV: {exc}")
         a, b = st.columns(2)
