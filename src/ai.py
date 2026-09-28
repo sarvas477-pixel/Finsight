@@ -289,6 +289,10 @@ def ask_gemini(question: str, results: list[dict[str, Any]] | None,
     if direct is not None:
         return direct, "deterministic"
 
+    scoped = _scope_answer(question)
+    if scoped is not None:
+        return scoped, "scope_guard"
+
     api_key = _secret("GEMINI_API_KEY")
     if not api_key:
         return template_chat(question, results), "template_fallback"
