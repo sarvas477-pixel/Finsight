@@ -195,6 +195,6 @@ def summarize_results(results):
     return {
         "total": len(results),
         "clean": sum(r["status"] == "CLEAN" for r in results),
-        "exceptions": sum(r["status"] == "EXCEPTION" and not r["human_review_required"] for r in results),
+        "exceptions": sum(r["status"] == "EXCEPTION" for r in results),
         "review_required": sum(r["human_review_required"] for r in results),
     }
