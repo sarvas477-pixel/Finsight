@@ -18,7 +18,7 @@ from src.rule_engine import process_invoices, summarize_results
 
 st.set_page_config(
     page_title="FinSight · AP Intelligence",
-    page_icon="✦",
+    page_icon="✨",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -204,11 +204,11 @@ def sidebar() -> None:
                 st.error(f"Could not read CSV: {exc}")
         a, b = st.columns(2)
         with a:
-            if st.button("Load sample", use_container_width=True):
+            if st.button("Load sample", width="stretch"):
                 reset_workspace(load_sample(), "data/invoices.csv")
                 st.rerun()
         with b:
-            if st.button("Reset", use_container_width=True):
+            if st.button("Reset", width="stretch"):
                 reset_workspace()
                 st.rerun()
         st.divider()
@@ -263,10 +263,10 @@ def analysis_page() -> None:
         st.markdown(f"**{st.session_state.source_name}** · {len(df):,} source rows")
         st.caption("Required schema: " + " · ".join(REQUIRED_COLUMNS))
     with c2:
-        if st.button("✦ Analyze now", type="primary", use_container_width=True):
+        if st.button("✦ Analyze now", type="primary", width="stretch"):
             run_analysis()
     st.markdown('<div class="section">Source preview</div>', unsafe_allow_html=True)
-    st.dataframe(df.head(100), use_container_width=True, hide_index=True)
+    st.dataframe(df.head(100), width="stretch", hide_index=True)
     if not st.session_state.analyzed:
         return
     results = st.session_state.results
@@ -275,20 +275,20 @@ def analysis_page() -> None:
     out = build_results_df(results)
     st.dataframe(
         out[["invoice_id","vendor","amount","category","status","route","confidence","human_review_required"]],
-        use_container_width=True, hide_index=True,
+        width="stretch", hide_index=True,
         column_config={"confidence": st.column_config.ProgressColumn("Confidence", min_value=0, max_value=1, format="%.0f%%")},
     )
     exceptions = out[out.status == "EXCEPTION"].copy()
     if not exceptions.empty:
         st.markdown('<div class="section">Exception details</div>', unsafe_allow_html=True)
-        st.dataframe(exceptions[["invoice_id","vendor","amount","category","rule_ids","reasons","route"]], use_container_width=True, hide_index=True)
+        st.dataframe(exceptions[["invoice_id","vendor","amount","category","rule_ids","reasons","route"]], width="stretch", hide_index=True)
     x, y, z = st.columns(3)
     with x:
-        st.download_button("↓ Analyzed CSV", out.to_csv(index=False).encode(), "finsight_analyzed.csv", "text/csv", use_container_width=True)
+        st.download_button("↓ Analyzed CSV", out.to_csv(index=False).encode(), "finsight_analyzed.csv", "text/csv", width="stretch")
     with y:
-        st.download_button(f"↓ Exceptions ({len(exceptions)})", exceptions.to_csv(index=False).encode(), "finsight_exceptions.csv", "text/csv", use_container_width=True)
+        st.download_button(f"↓ Exceptions ({len(exceptions)})", exceptions.to_csv(index=False).encode(), "finsight_exceptions.csv", "text/csv", width="stretch")
     with z:
-        st.download_button("↓ Original CSV", df.to_csv(index=False).encode(), "finsight_original.csv", "text/csv", use_container_width=True)
+        st.download_button("↓ Original CSV", df.to_csv(index=False).encode(), "finsight_original.csv", "text/csv", width="stretch")
 
 
 def review_page() -> None:
@@ -309,7 +309,7 @@ def review_page() -> None:
             note = st.text_area("Reviewer note", value=old.get("comment", ""), key=f"review_note_{iid}")
             a, b = st.columns(2)
             with a:
-                if st.button("Approve", key=f"approve_{iid}", use_container_width=True):
+                if st.button("Approve", key=f"approve_{iid}", width="stretch"):
                     st.session_state.reviews[iid] = {"action":"APPROVED","comment":note.strip(),"timestamp":pd.Timestamp.now(tz="UTC").isoformat()}
                     add_audit("REVIEW_ACTION", iid, f"APPROVED: {note.strip()}")
                     try:
@@ -319,7 +319,7 @@ def review_page() -> None:
                         pass
                     st.success(f"{iid} marked APPROVED.")
             with b:
-                if st.button("Reject", key=f"reject_{iid}", use_container_width=True):
+                if st.button("Reject", key=f"reject_{iid}", width="stretch"):
                     st.session_state.reviews[iid] = {"action":"REJECTED","comment":note.strip(),"timestamp":pd.Timestamp.now(tz="UTC").isoformat()}
                     add_audit("REVIEW_ACTION", iid, f"REJECTED: {note.strip()}")
                     try:
@@ -366,7 +366,7 @@ def copilot_page() -> None:
     cols = st.columns(len(quick))
     for c, prompt in zip(cols, quick):
         with c:
-            if st.button(prompt, key="quick_"+prompt, use_container_width=True):
+            if st.button(prompt, key="quick_"+prompt, width="stretch"):
                 st.session_state.chat.append(("user", prompt))
                 from src.copilot_workflow import copilot_workflow
                 response = copilot_workflow(prompt, st.session_state.results, st.session_state.chat[:-1])
@@ -413,7 +413,7 @@ def system_page() -> None:
     )
     if st.session_state.audit:
         st.markdown('<div class="section">Session audit</div>', unsafe_allow_html=True)
-        st.dataframe(pd.DataFrame(st.session_state.audit), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(st.session_state.audit), width="stretch", hide_index=True)
 
 
 def overview_page() -> None:
