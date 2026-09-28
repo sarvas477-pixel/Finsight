@@ -463,7 +463,6 @@ def workspace() -> None:
     with tabs[3]: copilot_tab()
 
 
-st.set_page_config(page_title="FinSight", page_icon="✦", layout="wide", initial_sidebar_state="expanded")
 init_state()
 sidebar()
 hero()
