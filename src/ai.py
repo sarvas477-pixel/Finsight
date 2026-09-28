@@ -69,8 +69,12 @@ def _small_talk_answer(question: str) -> str | None:
     if q in {"who are you", "what are you", "what is finsight copilot", "what can you do"}:
         return ("I'm FinSight Copilot. I can explain your invoice analysis, "
                 "help interpret exceptions and review routing, and answer general questions.")
+    if q in {"weather", "whats the weather", "what's the weather", "weather today",
+             "whats the weather today", "what's the weather today"}:
+        return ("I don't have live weather data connected to FinSight yet. "
+                "Ask me with a city once a weather data source is connected, "
+                "or use a live weather service for today's conditions.")
     return None
-
 
 def _trusted_payload(results: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
     payload = []
