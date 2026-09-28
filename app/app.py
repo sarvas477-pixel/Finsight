@@ -16,6 +16,8 @@ if str(ROOT) not in sys.path:
 from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
 from src.rule_engine import process_invoices, summarize_results
 
+
+
 st.set_page_config(
     page_title="FinSight — AP Intelligence",
     page_icon="✦",
@@ -27,42 +29,14 @@ st.markdown(
     """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root{--bg:#f7f5f2;--paper:#fff;--ink:#202124;--muted:#77736e;--line:#e9e5df;--accent:#e34f62;--accent-soft:#fff0f2;--green:#16856f;--green-soft:#eaf8f3;--amber:#a96d19;--amber-soft:#fff6e5;--shadow:0 12px 35px rgba(31,29,25,.07)}
-html,body,[class*="css"]{font-family:'DM Sans',sans-serif;color:var(--ink)}
-.stApp{background:var(--bg)} .block-container{max-width:1480px;padding:28px 42px 70px}
-h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important;letter-spacing:-.045em}
-[data-testid="stSidebar"]{background:#fff;border-right:1px solid var(--line)}
-[data-testid="stMetric"]{background:#fff;border:1px solid var(--line);border-radius:22px;padding:16px 18px;box-shadow:var(--shadow)}
-[data-testid="stDataFrame"]{border:1px solid var(--line);border-radius:18px;overflow:hidden}
-div.stButton>button,div.stDownloadButton>button{min-height:42px;border-radius:999px;border:1px solid var(--line);font-weight:700;background:#fff}
-button[kind="primary"]{background:var(--accent)!important;color:#fff!important;border:0!important}
-.fs-brand{font-family:'Space Grotesk';font-size:1.35rem;font-weight:700;letter-spacing:-.05em}.fs-brand span{color:var(--accent)}
-.fs-eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;font-weight:800;color:var(--accent)}
-.fs-hero{background:#fff;border:1px solid var(--line);border-radius:30px;padding:38px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.fs-hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-100px;top:-120px;background:var(--accent-soft)}
-.fs-title{font-family:'Space Grotesk';font-size:clamp(2.5rem,5vw,4.8rem);line-height:.92;letter-spacing:-.075em;max-width:900px;margin:10px 0 18px}
-.fs-copy{max-width:760px;color:var(--muted);font-size:1.03rem;line-height:1.65}
-.fs-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.fs-pill{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:.78rem;font-weight:700}
-.fs-section{font-family:'Space Grotesk';font-size:1.35rem;font-weight:700;letter-spacing:-.04em;margin:32px 0 12px}
-.fs-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:var(--shadow)}
-.fs-step{min-height:120px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px}
-.fs-step-no{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.12em}.fs-step-title{font-family:'Space Grotesk';font-size:1.08rem;font-weight:700;margin:7px 0}.fs-sub{color:var(--muted);font-size:.88rem}
-.fs-status{display:inline-block;padding:6px 10px;border-radius:999px;font-size:.72rem;font-weight:800}.fs-clean{background:var(--green-soft);color:var(--green)}.fs-exception{background:var(--accent-soft);color:#a73547}.fs-review{background:var(--amber-soft);color:var(--amber)}.fs-neutral{background:#f0eeeb;color:#5d5954}
-.fs-footer{text-align:center;color:#96918a;font-size:.76rem;margin-top:48px}
-</style>
-""",
-    unsafe_allow_html=True,
-)
-
-
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 :root{--bg:#09090b;--panel:#121216;--panel2:#18181e;--text:#f6f5f2;--muted:#96959f;--line:#292932;--pink:#ff4f8b;--violet:#8b5cf6;--cyan:#42d9ff;--green:#39d98a;--amber:#ffc857}
-html,body,[class*="css"]{font-family:'DM Sans',sans-serif} .stApp{background:radial-gradient(circle at 75% 5%,#251238 0,#09090b 35%);color:var(--text)}
-.block-container{max-width:1450px;padding:34px 42px 80px}.stMarkdown,p,label,small{color:var(--text)}
+html,body,[class*="css"]{font-family:'DM Sans',sans-serif}
+.stApp{background:radial-gradient(circle at 75% 5%,#251238 0,#09090b 35%);color:var(--text)}
+.block-container{max-width:1450px;padding:34px 42px 80px}
+.stMarkdown,p,label,small{color:var(--text)}
 h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important}
-[data-testid="stSidebar"]{background:#0e0e12;border-right:1px solid var(--line)} [data-testid="stSidebar"] *{color:#eee}
+[data-testid="stSidebar"]{background:#0e0e12;border-right:1px solid var(--line)}
+[data-testid="stSidebar"] *{color:#eee}
 .hero{border:1px solid #302b3b;background:linear-gradient(135deg,#15131b,#101015);border-radius:32px;padding:42px;overflow:hidden;position:relative;box-shadow:0 30px 90px rgba(0,0,0,.35)}
 .hero:before{content:"";position:absolute;width:480px;height:480px;right:-160px;top:-240px;border-radius:50%;background:radial-gradient(circle,#8b5cf655,transparent 65%);animation:pulse 5s ease-in-out infinite}
 .hero-grid{display:grid;grid-template-columns:1fr 360px;gap:30px;align-items:center}.eyebrow{color:#ff78a6;font-size:.72rem;font-weight:800;letter-spacing:.18em}
@@ -76,63 +50,9 @@ button[kind="primary"]{background:linear-gradient(90deg,#ff4f8b,#8b5cf6)!importa
 [data-testid="stDataFrame"]{border:1px solid var(--line);border-radius:18px;overflow:hidden}
 @keyframes pulse{50%{transform:scale(1.12);opacity:.75}} @keyframes float{50%{transform:translateY(-12px) rotate(4deg)}} @keyframes spin{to{transform:rotate(360deg)}}
 </style>
-
-\n"""FinSight — Streamlit AP intelligence workspace."""
-from __future__ import annotations
-
-import json
-import sys
-from pathlib import Path
-from typing import Any
-
-import pandas as pd
-import streamlit as st
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
-from src.rule_engine import process_invoices, summarize_results
-
-st.set_page_config(
-    page_title="FinSight — AP Intelligence",
-    page_icon="✦",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-st.markdown(
-    """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root{--bg:#f7f5f2;--paper:#fff;--ink:#202124;--muted:#77736e;--line:#e9e5df;--accent:#e34f62;--accent-soft:#fff0f2;--green:#16856f;--green-soft:#eaf8f3;--amber:#a96d19;--amber-soft:#fff6e5;--shadow:0 12px 35px rgba(31,29,25,.07)}
-html,body,[class*="css"]{font-family:'DM Sans',sans-serif;color:var(--ink)}
-.stApp{background:var(--bg)} .block-container{max-width:1480px;padding:28px 42px 70px}
-h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important;letter-spacing:-.045em}
-[data-testid="stSidebar"]{background:#fff;border-right:1px solid var(--line)}
-[data-testid="stMetric"]{background:#fff;border:1px solid var(--line);border-radius:22px;padding:16px 18px;box-shadow:var(--shadow)}
-[data-testid="stDataFrame"]{border:1px solid var(--line);border-radius:18px;overflow:hidden}
-div.stButton>button,div.stDownloadButton>button{min-height:42px;border-radius:999px;border:1px solid var(--line);font-weight:700;background:#fff}
-button[kind="primary"]{background:var(--accent)!important;color:#fff!important;border:0!important}
-.fs-brand{font-family:'Space Grotesk';font-size:1.35rem;font-weight:700;letter-spacing:-.05em}.fs-brand span{color:var(--accent)}
-.fs-eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;font-weight:800;color:var(--accent)}
-.fs-hero{background:#fff;border:1px solid var(--line);border-radius:30px;padding:38px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.fs-hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-100px;top:-120px;background:var(--accent-soft)}
-.fs-title{font-family:'Space Grotesk';font-size:clamp(2.5rem,5vw,4.8rem);line-height:.92;letter-spacing:-.075em;max-width:900px;margin:10px 0 18px}
-.fs-copy{max-width:760px;color:var(--muted);font-size:1.03rem;line-height:1.65}
-.fs-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.fs-pill{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:.78rem;font-weight:700}
-.fs-section{font-family:'Space Grotesk';font-size:1.35rem;font-weight:700;letter-spacing:-.04em;margin:32px 0 12px}
-.fs-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:var(--shadow)}
-.fs-step{min-height:120px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px}
-.fs-step-no{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.12em}.fs-step-title{font-family:'Space Grotesk';font-size:1.08rem;font-weight:700;margin:7px 0}.fs-sub{color:var(--muted);font-size:.88rem}
-.fs-status{display:inline-block;padding:6px 10px;border-radius:999px;font-size:.72rem;font-weight:800}.fs-clean{background:var(--green-soft);color:var(--green)}.fs-exception{background:var(--accent-soft);color:#a73547}.fs-review{background:var(--amber-soft);color:var(--amber)}.fs-neutral{background:#f0eeeb;color:#5d5954}
-.fs-footer{text-align:center;color:#96918a;font-size:.76rem;margin-top:48px}
-</style>
 """,
     unsafe_allow_html=True,
 )
-
 
 
 def init_state() -> None:
