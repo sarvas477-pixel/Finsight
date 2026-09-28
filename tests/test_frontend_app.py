@@ -18,6 +18,8 @@ def test_frontend_load_analyze_and_navigate():
 
     at.button[0].click().run()
     assert not at.exception, at.exception
+    if at.error:
+        raise AssertionError(at.error[0].value)
     assert at.session_state.analyzed is True
     assert len(at.session_state.results) == 5
 
