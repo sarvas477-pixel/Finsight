@@ -409,7 +409,7 @@ with st.sidebar:
     if st.button("Check connections", use_container_width=True):
         st.session_state.gemini_health = test_gemini_connection()
         st.session_state.supabase_health = test_supabase_connection()
-        st.toast("Connection checks completed", icon="✓")
+        st.toast("Connection checks completed", icon="🔗")
 
     gh = st.session_state.gemini_health
     sh = st.session_state.supabase_health
@@ -505,7 +505,7 @@ with top_b:
                     }
                     st.session_state.audit.append(event)
                     save_decision(r)
-            st.toast(f"{len(results)} invoices analyzed", icon="✓")
+            st.toast(f"{len(results)} invoices analyzed", icon="✅")
             st.rerun()
         except Exception as exc:
             st.error(str(exc))
