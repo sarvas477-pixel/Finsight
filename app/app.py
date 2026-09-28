@@ -183,12 +183,17 @@ def sidebar() -> None:
         st.caption("AP intelligence workspace")
         st.markdown('<span class="badge"><span class="status-dot"></span>Deterministic engine online</span>', unsafe_allow_html=True)
         st.divider()
+        pages = ["Overview", "Analyze", "Review", "Evidence", "Copilot", "System"]
         page = st.radio(
             "Workspace",
-            ["Overview", "Analyze", "Review", "Evidence", "Copilot", "System"],
-            key="page",
+            pages,
+            index=pages.index(st.session_state.page),
+            key="nav_page",
             label_visibility="collapsed",
         )
+        if page != st.session_state.page:
+            st.session_state.page = page
+            st.rerun()
         st.divider()
         uploaded = st.file_uploader("Invoice CSV", type=["csv"], help="Required: invoice_id, vendor, amount, category, invoice_date")
         if uploaded is not None and uploaded.name != st.session_state.source_name:
