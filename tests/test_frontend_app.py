@@ -8,7 +8,7 @@ def test_frontend_load_analyze_and_navigate():
     at = AppTest.from_file(Path(__file__).resolve().parents[1] / "app" / "app.py", default_timeout=20).run()
     assert not at.exception, at.exception
 
-    at.button("Load bundled sample →").click().run()
+    at.button[0].click().run()
     assert not at.exception, at.exception
     assert at.session_state.df is not None
     assert len(at.session_state.df) == 5
