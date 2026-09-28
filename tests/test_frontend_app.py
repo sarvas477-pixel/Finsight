@@ -13,7 +13,7 @@ def test_frontend_load_analyze_and_navigate():
     assert at.session_state.df is not None
     assert len(at.session_state.df) == 5
 
-    at.radio("Workspace").set_value("Analyze").run()
+    at.radio[0].set_value("Analyze").run()
     assert not at.exception, at.exception
 
     at.button("✦ Analyze now").click().run()
@@ -29,20 +29,20 @@ def test_frontend_load_analyze_and_navigate():
     }
     assert summary == {"total": 5, "clean": 2, "exceptions": 3, "review": 3}
 
-    at.radio("Workspace").set_value("Evidence").run()
+    at.radio[0].set_value("Evidence").run()
     assert not at.exception, at.exception
     assert len(at.selectbox) >= 1
 
-    at.radio("Workspace").set_value("Review").run()
+    at.radio[0].set_value("Review").run()
     assert not at.exception, at.exception
     assert len(at.button) >= 1
 
-    at.radio("Workspace").set_value("Copilot").run()
+    at.radio[0].set_value("Copilot").run()
     assert not at.exception, at.exception
     at.button("Why is INV003 flagged?").click().run()
     assert not at.exception, at.exception
     assert at.session_state.chat
     assert "INV003" in at.session_state.chat[-1][1]
 
-    at.radio("Workspace").set_value("System").run()
+    at.radio[0].set_value("System").run()
     assert not at.exception, at.exception
