@@ -67,7 +67,9 @@ def _invoice_question(question: str) -> bool:
         "invoice", "invoices", "vendor", "amount", "csv", "duplicate",
         "exception", "flag", "human review", "auto-pass", "audit",
         "category limit", "rule", "ap", "accounts payable", "finsight",
-        "spend", "payment", "review action",
+        "spend", "payment", "review action", "upload", "analyze", "analysis",
+        "dashboard", "copilot", "streamlit", "download", "button", "app",
+        "csv file", "csv upload", "login",
     )
     return any(term in q for term in terms)
 
