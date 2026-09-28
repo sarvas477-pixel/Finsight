@@ -25,3 +25,15 @@ def test_workflow_returns_structured_ai_result():
     assert result["stage"] == "ai_result"
     assert result["mode"] == "deterministic"
     assert result["answer"]
+
+
+def test_unrelated_generic_words_are_guarded():
+    answer, mode = ask_gemini("what is an app", [], [])
+    assert mode == "scope_guard"
+    assert "cannot help" in answer.lower()
+
+
+def test_invoice_context_is_not_guarded():
+    answer, mode = ask_gemini("why is INV003 flagged?", [], [])
+    assert mode in {"template_fallback", "deterministic"}
+    assert "invoice" in answer.lower() or "dataset" in answer.lower()
