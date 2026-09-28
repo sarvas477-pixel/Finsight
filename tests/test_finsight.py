@@ -55,7 +55,7 @@ def test_missing_columns():
 def test_summary():
     rs=process_invoices(pd.DataFrame([inv(),inv(invoice_id="B",vendor="")]))
     s=summarize_results(rs)
-    assert s=={"total":2,"clean":1,"exceptions":0,"review_required":1}
+    assert s=={"total":2,"clean":1,"exceptions":1,"review_required":1}
 
 def test_template_chat():
     rs=process_invoices(pd.read_csv("data/invoices.csv"))
@@ -110,3 +110,18 @@ def test_generated_invoice_batch(idx):
     r = process_invoices(pd.DataFrame([row]))[0]
     assert r["status"] == "CLEAN"
     assert r["route"] == "AUTO_PASS"
+
+
+def test_sample_csv_exact_summary():
+    rs = process_invoices(pd.read_csv("data/invoices.csv"))
+    assert summarize_results(rs) == {
+        "total": 5,
+        "clean": 2,
+        "exceptions": 3,
+        "review_required": 3,
+    }
+    by_id = {r["invoice_id"]: r for r in rs}
+    assert by_id["INV001"]["status"] == "CLEAN"
+    assert by_id["INV002"]["rule_ids"] == ["AMOUNT_LIMIT"]
+    assert by_id["INV003"]["rule_ids"] == ["DUPLICATE_INVOICE"]
+    assert by_id["INV005"]["rule_ids"] == ["MISSING_REQUIRED_FIELD"]
