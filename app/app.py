@@ -232,11 +232,14 @@ def empty_state() -> None:
 def summary(results: list[dict]) -> None:
     s = summarize_results(results)
     avg = sum(float(x.get("confidence", 0)) for x in results) / max(len(results),1)
+    # Exception status and human-review routing are separate concepts.
+    exception_count = sum(str(x.get("status", "")).upper() == "EXCEPTION" for x in results)
+    review_count = sum(bool(x.get("human_review_required")) for x in results)
     vals = [
         ("Invoices", s["total"], "total"),
         ("Auto-pass", s["clean"], "safe"),
-        ("Exceptions", s["exceptions"], "flagged"),
-        ("Human review", s["review_required"], "attention"),
+        ("Exceptions", exception_count, "flagged"),
+        ("Human review", review_count, "attention"),
         ("Confidence", f"{avg:.0%}", "score"),
     ]
     cols = st.columns(5)
@@ -259,6 +262,16 @@ def results_section(df: pd.DataFrame, results: list[dict]) -> None:
                  column_config={"confidence": st.column_config.ProgressColumn("Confidence", min_value=0, max_value=1, format="%.0f%%")})
     st.markdown("</div>", unsafe_allow_html=True)
 
+    if not exceptions.empty:
+        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        st.markdown("#### Exception details")
+        st.caption("These are the rows that failed one or more configured validation rules.")
+        exception_show = exceptions[
+            ["invoice_id", "vendor", "amount", "category", "status", "route", "rule_ids", "reasons"]
+        ].copy()
+        st.dataframe(exception_show, use_container_width=True, hide_index=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
     x,y,z = st.columns(3)
     with x:
         st.download_button("↓ Analyzed CSV", out.to_csv(index=False).encode(), "finsight_analyzed.csv", "text/csv", use_container_width=True)
@@ -267,11 +280,29 @@ def results_section(df: pd.DataFrame, results: list[dict]) -> None:
     with z:
         st.download_button("↓ Original CSV", df.to_csv(index=False).encode(), "finsight_original.csv", "text/csv", use_container_width=True)
 
-    st.markdown('<div class="section-title">Flagged invoices</div>', unsafe_allow_html=True)
-    flagged = [x for x in results if x.get("status") != "CLEAN"]
+    st.markdown('<div class="section-title">Exception queue</div>', unsafe_allow_html=True)
+    st.caption("Every invoice with status EXCEPTION is shown here, including exceptions that require human review.")
+
+    view = st.radio(
+        "Show",
+        ["All", "Exceptions only", "Clean only"],
+        horizontal=True,
+        label_visibility="collapsed",
+        key="results_view",
+    )
+    if view == "Exceptions only":
+        visible = [x for x in results if str(x.get("status", "")).upper() == "EXCEPTION"]
+    elif view == "Clean only":
+        visible = [x for x in results if str(x.get("status", "")).upper() == "CLEAN"]
+    else:
+        visible = results
+
+    flagged = [x for x in results if str(x.get("status", "")).upper() == "EXCEPTION"]
     if not flagged:
         st.success("Everything passed the configured checks.")
-    for item in flagged[:20]:
+    elif view == "Exceptions only":
+        st.success(f"{len(flagged)} exception(s) detected.")
+    for item in visible[:50]:
         with st.container(border=True):
             a,b = st.columns([5,1])
             with a:
