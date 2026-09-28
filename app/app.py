@@ -114,7 +114,8 @@ def add_audit(event: str, invoice_id: str = "", message: str = "", metadata: dic
 
 
 def analyze(df: pd.DataFrame) -> list[dict]:
-    return process_invoices(df)
+    from src.copilot_workflow import analyze_invoice_workflow
+    return analyze_invoice_workflow(df)["results"]
 
 
 def build_results_df(results: list[dict]) -> pd.DataFrame:
@@ -149,8 +150,13 @@ def explain(item: dict) -> str:
 
 def copilot(question: str) -> tuple[str, str]:
     try:
-        from src.ai import ask_gemini
-        return ask_gemini(question, st.session_state.results, st.session_state.chat)
+        from src.copilot_workflow import copilot_workflow
+        response = copilot_workflow(
+            question,
+            st.session_state.results,
+            st.session_state.chat,
+        )
+        return response["answer"], response["mode"]
     except Exception as exc:
         return f"Copilot fallback is active ({type(exc).__name__}).", "fallback"
 
