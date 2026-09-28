@@ -366,8 +366,8 @@ def copilot_page() -> None:
             if st.button(prompt, key="quick_"+prompt, use_container_width=True):
                 st.session_state.chat.append(("user", prompt))
                 from src.copilot_workflow import copilot_workflow
-                answer, mode = copilot_workflow(prompt, st.session_state.results, st.session_state.chat[:-1])["answer"], copilot_workflow(prompt, st.session_state.results, st.session_state.chat[:-1])["mode"]
-                st.session_state.chat.append(("assistant", answer, mode))
+                response = copilot_workflow(prompt, st.session_state.results, st.session_state.chat[:-1])
+                st.session_state.chat.append(("assistant", response["answer"], response["mode"]))
                 st.rerun()
     for item in st.session_state.chat:
         role = item[0]
