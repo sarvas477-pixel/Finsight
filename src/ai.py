@@ -125,11 +125,13 @@ def deterministic_answer(question: str, results: list[dict[str, Any]] | None) ->
         return None
 
     q = question.lower().strip()
+    from src.rule_engine import summarize_results
+    canonical = summarize_results(results)
     summary = {
-        "total": len(results),
-        "clean": sum(r.get("status") == "CLEAN" for r in results),
-        "exceptions": sum(r.get("status") == "EXCEPTION" for r in results),
-        "review": sum(bool(r.get("human_review_required")) for r in results),
+        "total": canonical["total"],
+        "clean": canonical["clean"],
+        "exceptions": canonical["exceptions"],
+        "review": canonical["review_required"],
     }
 
     if (("how many" in q or "count" in q or "summary" in q or "overview" in q)
