@@ -20,7 +20,7 @@ def test_frontend_primary_workflow():
     assert at.session_state.df is not None
     assert len(at.session_state.df) == 5
 
-    assert len(at.button(key="analyze_btn")) == 1
+    # A keyed AppTest lookup returns the Button element itself, not a collection.
     at.button(key="analyze_btn").click().run()
     assert not at.exception, at.exception
     assert not at.error, [x.value for x in at.error]
