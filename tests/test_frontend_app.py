@@ -4,22 +4,26 @@ from pathlib import Path
 from streamlit.testing.v1 import AppTest
 
 
-def test_frontend_load_analyze_and_navigate():
-    at = AppTest.from_file(Path(__file__).resolve().parents[1] / "app" / "app.py", default_timeout=20).run()
-    assert not at.exception, at.exception
+def test_frontend_primary_workflow():
+    at = AppTest.from_file(
+        Path(__file__).resolve().parents[1] / "app" / "app.py",
+        default_timeout=20,
+    ).run()
 
-    at.button[0].click().run()
+    assert not at.exception, at.exception
+    assert at.session_state.df is None
+    assert len(at.button) >= 2
+
+    # The primary workflow must be reachable from the first screen.
+    at.button(key="load_sample").click().run()
     assert not at.exception, at.exception
     assert at.session_state.df is not None
     assert len(at.session_state.df) == 5
 
-    at.radio[0].set_value("Analyze").run()
+    assert len(at.button(key="analyze_btn")) == 1
+    at.button(key="analyze_btn").click().run()
     assert not at.exception, at.exception
-
-    at.button[0].click().run()
-    assert not at.exception, at.exception
-    if at.error:
-        raise AssertionError(at.error[0].value)
+    assert not at.error, [x.value for x in at.error]
     assert at.session_state.analyzed is True
     assert len(at.session_state.results) == 5
 
@@ -31,20 +35,12 @@ def test_frontend_load_analyze_and_navigate():
     }
     assert summary == {"total": 5, "clean": 2, "exceptions": 3, "review": 3}
 
-    at.radio[0].set_value("Evidence").run()
-    assert not at.exception, at.exception
+    # Results and the analysis tabs must exist after analysis.
+    assert len(at.tabs) == 4
     assert len(at.selectbox) >= 1
 
-    at.radio[0].set_value("Review").run()
-    assert not at.exception, at.exception
-    assert len(at.button) >= 1
-
-    at.radio[0].set_value("Copilot").run()
-    assert not at.exception, at.exception
+    # Copilot quick action is still wired to the backend workflow.
     at.button(key="quick_Why is INV003 flagged?").click().run()
     assert not at.exception, at.exception
     assert at.session_state.chat
     assert "INV003" in at.session_state.chat[-1][1]
-
-    at.radio[0].set_value("System").run()
-    assert not at.exception, at.exception
