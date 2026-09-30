@@ -23,54 +23,60 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown(
-    """
-<style>
+st.markdown("""<style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root{--bg:#050914;--panel:#0b1628;--panel2:#0d1b30;--panel3:#101f35;--line:#1e2c44;--cyan:#00d9ff;--blue:#147bff;--violet:#715cff;--text:#f4f8ff;--muted:#b7c3d8;--steel:#65738b;--green:#35d07f;--amber:#f5b942;--red:#ff5c70}
-html,body,.stApp,[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 85% 0%,rgba(0,217,255,.055),transparent 24%),radial-gradient(circle at 10% 85%,rgba(113,92,255,.055),transparent 26%),var(--bg)!important;color:var(--text)!important}
-body,[class*="css"]{font-family:'Inter',sans-serif}
-[data-testid="stHeader"]{background:rgba(5,9,20,.82)!important;border-bottom:1px solid rgba(0,217,255,.08);backdrop-filter:blur(16px)}
-.block-container{max-width:1520px;padding:28px 36px 70px}
-h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important;color:var(--text)!important}
-p,label,span,.stMarkdown{color:var(--text)}
-[data-testid="stSidebar"],[data-testid="stSidebar"]>div{background:#07111f!important;border-right:1px solid var(--line)!important}
-[data-testid="stSidebar"] *{color:var(--text)!important}
-[data-testid="stSidebar"] .stCaption{color:var(--muted)!important}
-[data-testid="stSidebar"] .stButton button{background:#0b1628!important;border:1px solid rgba(0,217,255,.18)!important;color:var(--text)!important}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
-.brand{font:700 1.35rem 'Space Grotesk';letter-spacing:-.04em}.brand b{color:var(--cyan)}
-.live{border:1px solid rgba(53,208,127,.3);background:rgba(53,208,127,.08);border-radius:999px;padding:7px 11px;font-size:.68rem;font-weight:700;color:var(--green)!important;letter-spacing:.08em;text-transform:uppercase}
-.hero{position:relative;overflow:hidden;border:1px solid rgba(0,217,255,.16);border-radius:16px;padding:38px;background:linear-gradient(135deg,rgba(11,22,40,.96),rgba(7,17,31,.98));box-shadow:0 16px 40px rgba(0,4,15,.65),0 0 40px rgba(0,217,255,.04)}
-.hero:after{content:"";position:absolute;width:420px;height:420px;right:-180px;top:-220px;border-radius:50%;background:rgba(0,217,255,.07);filter:blur(90px)}
-.eyebrow{font:700 .68rem 'Space Grotesk';letter-spacing:.16em;color:var(--cyan)!important;text-transform:uppercase}
-.hero h1{font-size:clamp(2.7rem,5vw,5rem);line-height:.95;letter-spacing:-.07em;margin:13px 0 15px;position:relative;z-index:1}.hero h1 span{color:var(--cyan);text-shadow:0 0 28px rgba(0,217,255,.18)}
-.hero p{max-width:820px;color:var(--muted)!important;font-size:1rem;line-height:1.65;position:relative;z-index:1}
-.card,.metric{background:rgba(11,22,40,.88);border:1px solid rgba(0,217,255,.12);border-radius:12px;padding:20px;box-shadow:0 16px 40px rgba(0,4,15,.45)}
-.action{border-color:rgba(0,217,255,.25)!important;background:linear-gradient(135deg,rgba(11,22,40,.96),rgba(13,27,48,.9))!important}
-.metric{padding:16px 18px}.metric small{display:block;color:var(--steel)!important;text-transform:uppercase;letter-spacing:.12em;font:700 .64rem 'Space Grotesk'}.metric strong{display:block;font:700 2rem 'Space Grotesk';margin-top:6px}.safe strong{color:var(--green)}.flag strong{color:var(--red)}.review strong{color:var(--amber)}.score strong{color:var(--cyan)}
-.badge{display:inline-block;border:1px solid rgba(0,217,255,.2);border-radius:999px;padding:5px 9px;font:700 .68rem 'Space Grotesk';background:rgba(13,27,48,.8);letter-spacing:.06em}.clean{color:var(--green)!important}.exception{color:var(--red)!important}.human{color:var(--amber)!important}
-div.stButton>button,div.stDownloadButton>button{min-height:44px!important;border-radius:10px!important;border:1px solid rgba(0,217,255,.22)!important;background:#0b1628!important;color:var(--text)!important;font:600 14px 'Space Grotesk'!important;box-shadow:none!important}
-div.stButton>button:hover,div.stDownloadButton>button:hover{border-color:var(--cyan)!important;background:#0d1b30!important;transform:translateY(-1px)!important;box-shadow:0 0 24px rgba(0,217,255,.10)!important}
-button[kind="primary"]{background:linear-gradient(135deg,#00d9ff,#147bff)!important;color:#04101c!important;border:0!important;box-shadow:0 0 20px rgba(0,217,255,.28),0 4px 12px rgba(0,0,0,.5)!important}
-[data-testid="stFileUploader"],[data-testid="stFileUploader"] section{background:#0b1628!important;border:1px dashed rgba(0,217,255,.28)!important;border-radius:12px!important}
-[data-testid="stFileUploader"] button{background:#0d1b30!important;color:var(--text)!important;border:1px solid rgba(0,217,255,.2)!important}
-.stTextInput>div>div,.stTextArea>div>div,.stSelectbox>div>div,input,textarea,[data-baseweb="select"]>div{background:#07111f!important;color:var(--text)!important;border-color:rgba(0,217,255,.18)!important}
-[data-testid="stDataFrame"],[data-testid="stDataFrame"]>div{background:#0b1628!important;border:1px solid rgba(0,217,255,.12)!important;border-radius:10px!important;overflow:hidden}
-[data-testid="stTabs"] [role="tab"]{font:700 12px 'Space Grotesk';letter-spacing:.05em;color:var(--steel)!important}.stTabs [aria-selected="true"]{color:var(--cyan)!important}
-[data-testid="stChatMessage"]{background:#0b1628!important;border:1px solid rgba(0,217,255,.12)!important;border-radius:12px}
-[data-testid="stChatInput"]{background:#0b1628!important;border-color:rgba(0,217,255,.18)!important}
-[data-testid="stExpander"]{background:#0b1628!important;border:1px solid rgba(0,217,255,.12)!important;border-radius:10px}
-.stAlert{background:#0b1628!important;color:var(--text)!important;border:1px solid rgba(0,217,255,.14)!important}
-.muted{color:var(--muted)!important}.footer{text-align:center;color:var(--steel)!important;font:700 .62rem 'Space Grotesk';letter-spacing:.16em;margin-top:44px}
-[data-testid="stMetricValue"]{color:var(--text)!important;font-family:'Space Grotesk'!important}
+:root{--bg:#06101d;--surface:#0b1727;--surface2:#0f1e31;--line:#20344d;--text:#f4f8ff;--muted:#8fa3bb;--cyan:#19d9ff;--blue:#4c8dff;--green:#36d48a;--amber:#f5b942;--red:#ff6175}
+html,body,.stApp,[data-testid="stAppViewContainer"]{background:var(--bg)!important;color:var(--text)!important}
+body,[class*="css"]{font-family:Inter,sans-serif}
+[data-testid="stHeader"]{background:rgba(6,16,29,.9)!important}
+.block-container{max-width:1440px;padding:22px 34px 60px}
+h1,h2,h3,h4{font-family:"Space Grotesk",sans-serif!important;color:var(--text)!important}
+p,span,label{color:var(--text)}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0 22px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.logo{font:700 1.35rem "Space Grotesk";letter-spacing:-.04em}.logo span{color:var(--cyan)}
+.status{border:1px solid rgba(54,212,138,.25);background:rgba(54,212,138,.08);color:var(--green)!important;border-radius:999px;padding:7px 12px;font:700 .65rem "Space Grotesk";letter-spacing:.08em}
+.hero{padding:4px 0 28px}.kicker{color:var(--cyan)!important;font:700 .68rem "Space Grotesk";letter-spacing:.15em}
+.hero h1{font-size:clamp(2.6rem,5vw,4.8rem);line-height:.96;letter-spacing:-.065em;margin:12px 0}
+.hero h1 span{color:var(--cyan)}.hero p{max-width:720px;color:var(--muted)!important;line-height:1.65}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 16px 40px rgba(0,0,0,.2)}
+.panel-title{font:700 .7rem "Space Grotesk";letter-spacing:.12em;color:var(--muted)!important;text-transform:uppercase;margin-bottom:10px}
+.dropzone [data-testid="stFileUploader"] section{background:var(--surface2)!important;border:1px dashed #31506f!important;border-radius:14px!important}
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:17px}.metric small{display:block;color:var(--muted)!important;font:700 .63rem "Space Grotesk";letter-spacing:.1em;text-transform:uppercase}.metric strong{display:block;font:700 1.9rem "Space Grotesk";margin-top:6px}
+.safe strong{color:var(--green)}.flag strong{color:var(--red)}.review strong{color:var(--amber)}.score strong{color:var(--cyan)}
+div.stButton>button,div.stDownloadButton>button{min-height:42px!important;border-radius:9px!important;border:1px solid #29435e!important;background:var(--surface2)!important;color:var(--text)!important;font:600 13px "Space Grotesk"!important}
+div.stButton>button:hover,div.stDownloadButton>button:hover{border-color:var(--cyan)!important;transform:translateY(-1px)}
+button[kind="primary"]{background:linear-gradient(135deg,#19d9ff,#4c8dff)!important;color:#03111e!important;border:0!important}
+.stTextInput>div>div,.stTextArea>div>div,[data-baseweb="select"]>div{background:#081321!important;border-color:#29435e!important;color:var(--text)!important}
+[data-testid="stFileUploader"] section{background:var(--surface2)!important;border-color:#31506f!important}
+[data-testid="stDataFrame"]{border:1px solid var(--line)!important;border-radius:12px!important;overflow:hidden}
+[data-testid="stTabs"] [role="tab"]{color:var(--muted)!important;font:700 12px "Space Grotesk"!important}
+[data-testid="stTabs"] [aria-selected="true"]{color:var(--cyan)!important}
+[data-testid="stChatMessage"],[data-testid="stExpander"]{background:var(--surface)!important;border:1px solid var(--line)!important}
+.badge{display:inline-block;border-radius:999px;padding:5px 9px;border:1px solid var(--line);font:700 .65rem "Space Grotesk"}
+.clean{color:var(--green)!important}.exception{color:var(--red)!important}.human{color:var(--amber)!important}
+.muted{color:var(--muted)!important}.footer{margin-top:40px;text-align:center;color:#53677f!important;font:700 .6rem "Space Grotesk";letter-spacing:.14em}
 hr{border-color:var(--line)!important}
-code{background:#04101c!important;color:#9deeff!important}
-@media(max-width:800px){.block-container{padding:18px 12px 50px}.hero{padding:25px}.hero h1{font-size:3.3rem}}
-</style>
-""",
-    unsafe_allow_html=True,
-)
+
+/* FinSight dashboard shell */
+[data-testid="stSidebar"]{background:#08111f!important;border-right:1px solid #1d3047!important}
+[data-testid="stSidebar"]>div{padding-top:18px!important}
+.side-brand{font:700 20px "Space Grotesk";letter-spacing:-.04em;padding:4px 8px 20px;border-bottom:1px solid #1d3047;margin-bottom:14px}
+.side-brand b{color:#19d9ff}
+.side-section{font:700 9px "Space Grotesk";letter-spacing:.14em;color:#61758e!important;margin:18px 8px 7px;text-transform:uppercase}
+.side-copy{color:#71859d!important;font-size:11px;line-height:1.5;padding:0 8px 12px}
+.topline{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1d3047;padding-bottom:16px;margin-bottom:22px}
+.crumb{font:600 11px "Space Grotesk";color:#6f839c!important;letter-spacing:.03em}
+.userpill{font:600 11px "Space Grotesk";color:#b8c7d9!important;background:#0c1a2c;border:1px solid #20354e;border-radius:999px;padding:8px 12px}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:16px}
+.card{background:#0b1727;border:1px solid #20344d;border-radius:16px;padding:18px}
+.card-title{font:700 11px "Space Grotesk";letter-spacing:.1em;color:#9eb0c4!important;text-transform:uppercase}
+.card-value{font:700 30px "Space Grotesk";margin-top:8px;color:#f4f8ff}
+.rowitem{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #172940}
+.rowitem:last-child{border-bottom:0}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px}
+.dot-cyan{background:#19d9ff}.dot-green{background:#36d48a}.dot-red{background:#ff6175}.dot-amber{background:#f5b942}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr}}
+</style>""", unsafe_allow_html=True)
 
 
 def init_state():
@@ -326,137 +332,195 @@ def copilot_tab():
         st.rerun()
 
 
-def main():
+
+def set_page(page):
+    st.session_state.page = page
+
+
+def page_nav():
+    st.session_state.setdefault("page", "Dashboard")
     with st.sidebar:
-        st.markdown("## ✦ FinSight")
-        st.caption("Accounts-payable intelligence")
-        st.markdown('<span class="live">● RULE ENGINE ONLINE</span>', unsafe_allow_html=True)
-        st.divider()
-        st.markdown("**Required CSV columns**")
-        st.code("\n".join(REQUIRED_COLUMNS), language="text")
-        st.markdown("**Configured limits**")
-        for category, limit in CATEGORY_LIMITS.items():
-            st.caption(f"{category} · ₹{limit:,.0f}")
-
-        st.divider()
-        if st.button("Log out", key="logout", width="stretch"):
-            st.session_state.authenticated = False
-            st.session_state.login_error = ""
-            st.rerun()
-
-    st.markdown(
-        f'<div class="top"><div class="brand">FINSIGHT <b>/ AP INTELLIGENCE</b></div>'
-        f'<div class="live">● {st.session_state.source_name or "NO DATASET LOADED"}</div></div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="hero"><div class="eyebrow">INVOICE INTELLIGENCE · EVIDENCE · HUMAN REVIEW</div>'
-        '<h1>Analyze every invoice.<br><span>See every decision.</span></h1>'
-        '<p>Upload a CSV, run the deterministic rule engine, inspect the exact evidence behind each result, and send uncertain cases to human review.</p></div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("### 01 · LOAD INVOICE DATA")
-    upload_col, sample_col, reset_col = st.columns([5, 1.5, 1.2])
-    with upload_col:
-        uploaded = st.file_uploader(
-            "Invoice CSV",
-            type=["csv"],
-            key="invoice_upload",
-            help="Required: invoice_id, vendor, amount, category, invoice_date",
-        )
-    with sample_col:
-        st.write("")
-        st.write("")
-        if st.button("Load sample", key="load_sample", width="stretch"):
-            reset_workspace(load_sample(), "data/invoices.csv")
-            st.rerun()
-    with reset_col:
-        st.write("")
-        st.write("")
-        if st.button("Reset", key="reset_workspace", width="stretch"):
+        st.markdown('<div class="side-brand">Fin<b>◈</b>Sight</div>', unsafe_allow_html=True)
+        st.markdown('<div class="side-copy">Accounts-payable intelligence<br><span style="color:#36d48a">● ENGINE ONLINE</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="side-section">Workspace</div>', unsafe_allow_html=True)
+        items = [
+            ("Dashboard", "⌂ Dashboard"),
+            ("Exceptions", "⚠ Exceptions"),
+            ("Evidence", "◉ Evidence"),
+            ("Copilot", "✦ Copilot"),
+            ("Audit", "▤ Audit log"),
+        ]
+        for page, label in items:
+            if st.button(label, key="nav_" + page.lower(), width="stretch"):
+                set_page(page)
+                st.rerun()
+        st.markdown('<div class="side-section">System</div>', unsafe_allow_html=True)
+        if st.button("↻ New batch", key="nav_new", width="stretch"):
             reset_workspace()
+            set_page("Dashboard")
             st.rerun()
+        if st.button("↪ Log out", key="nav_logout", width="stretch"):
+            st.session_state["authenticated"] = False
+            st.rerun()
+        st.markdown('<div class="side-copy" style="margin-top:20px">Required CSV fields<br>invoice_id · vendor · amount<br>category · invoice_date</div>', unsafe_allow_html=True)
 
-    if uploaded is not None and uploaded.name != st.session_state.source_name:
-        try:
-            reset_workspace(pd.read_csv(uploaded), uploaded.name)
-            st.toast(f"{uploaded.name} loaded", icon="✨")
-        except Exception as exc:
-            st.error(f"Could not read CSV: {exc}")
 
+def topbar():
+    st.markdown(
+        '<div class="topline"><div class="crumb">FinSight / AP Intelligence / '
+        + st.session_state.get("page", "Dashboard")
+        + '</div><div class="userpill">● SYSTEM READY &nbsp; · &nbsp; AP CONTROL</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def dashboard_page():
     if st.session_state.df is None:
         st.markdown(
-            '<div class="card action"><h3>Nothing loaded yet</h3>'
-            '<p class="muted">Load the bundled sample or upload your own CSV. The Analyze button will appear here as soon as data is ready.</p></div>',
+            '<div class="hero"><div class="kicker">ACCOUNTS PAYABLE · CONTROL CENTER</div>'
+            '<h1>Make every invoice<br><span>easy to trust.</span></h1>'
+            '<p>Upload a batch, run deterministic checks, then resolve exceptions with evidence and human review in one workspace.</p></div>',
             unsafe_allow_html=True,
         )
-        st.markdown("### What FinSight checks")
-        a,b,c,d = st.columns(4)
-        for col, num, title, body in [
-            (a,"01","Schema","Required fields, missing values, dates and amounts."),
-            (b,"02","Rules","Category limits, invalid values and duplicate invoices."),
-            (c,"03","Review","Uncertain exceptions are routed to a human."),
-            (d,"04","Evidence","Every decision includes rule IDs and matched records."),
+        left, right = st.columns([1.5, .8])
+        with left:
+            st.markdown('<div class="card"><div class="card-title">Invoice intake</div><h3>Load a new batch</h3><p class="muted">CSV only · required fields: invoice_id, vendor, amount, category, invoice_date</p>', unsafe_allow_html=True)
+            uploaded = st.file_uploader("Drop invoice CSV here", type=["csv"], key="invoice_upload")
+            st.markdown('</div>', unsafe_allow_html=True)
+            if uploaded is not None and uploaded.name != st.session_state.source_name:
+                try:
+                    reset_workspace(pd.read_csv(uploaded), uploaded.name)
+                    st.session_state.page = "Dashboard"
+                    st.rerun()
+                except Exception as exc:
+                    st.error(f"Could not read CSV: {exc}")
+        with right:
+            st.markdown('<div class="card"><div class="card-title">Quick start</div><h3>Demo batch</h3><p class="muted">Use the bundled dataset to test the complete FinSight workflow.</p>', unsafe_allow_html=True)
+            if st.button("Load sample batch", key="load_sample", type="primary", width="stretch"):
+                reset_workspace(load_sample(), "data/invoices.csv")
+                st.session_state.page = "Dashboard"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown("### Workflow")
+        a,b,c=st.columns(3)
+        for col,title,body,dot in [
+            (a,"Analyze","Deterministic rules inspect every invoice.","cyan"),
+            (b,"Resolve","Exceptions are routed to human review.","red"),
+            (c,"Explain","Evidence makes each decision traceable.","green"),
         ]:
             with col:
-                st.markdown(f'<div class="card"><b>{num}</b><h4>{title}</h4><p class="muted">{body}</p></div>', unsafe_allow_html=True)
-        st.markdown('<div class="footer">FINSIGHT · DETERMINISTIC DECISIONS · HUMAN JUDGMENT</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="card"><span class="dot dot-{dot}"></span><b>{title}</b><p class="muted">{body}</p></div>',unsafe_allow_html=True)
         return
-
-    df = st.session_state.df
-    st.markdown("### 02 · RUN DETERMINISTIC ANALYSIS")
-    left, right = st.columns([4, 1.5])
-    with left:
-        st.markdown(
-            f'<div class="card"><b>{st.session_state.source_name}</b><br>'
-            f'<span class="muted">{len(df):,} invoice rows loaded · {len(df.columns)} columns · required schema checked when analysis runs</span></div>',
-            unsafe_allow_html=True,
-        )
-    with right:
-        if st.button("✦ ANALYZE INVOICES", key="analyze_btn", type="primary", width="stretch"):
-            run_analysis()
-            st.rerun()
-
-    st.markdown("### SOURCE PREVIEW")
-    st.dataframe(df.head(100), width="stretch", hide_index=True)
 
     if not st.session_state.analyzed:
         st.markdown(
-            '<div class="card action"><h3>Ready to analyze</h3>'
-            '<p class="muted">Press <b>ANALYZE INVOICES</b> above. Results will appear directly below — no separate page or hidden navigation required.</p></div>',
+            f'<div class="hero"><div class="kicker">BATCH READY</div><h1>{st.session_state.source_name}<br><span>{len(st.session_state.df):,} invoices loaded.</span></h1>'
+            '<p>Preview the source and run the deterministic engine when you are ready.</p></div>',
             unsafe_allow_html=True,
         )
-        st.markdown('<div class="footer">FINSIGHT · READY FOR ANALYSIS</div>', unsafe_allow_html=True)
+        a,b,c=st.columns([4,1.1,1])
+        with a:
+            st.markdown(f'<div class="card"><div class="card-title">Current batch</div><div class="card-value">{len(st.session_state.df):,}</div><span class="muted">invoice rows · {len(st.session_state.df.columns)} columns</span></div>',unsafe_allow_html=True)
+        with b:
+            if st.button("Analyze",key="analyze_btn",type="primary",width="stretch"):
+                run_analysis(); st.rerun()
+        with c:
+            if st.button("Reset",key="reset_workspace",width="stretch"):
+                reset_workspace(); st.rerun()
+        with st.expander("Preview source CSV"):
+            st.dataframe(st.session_state.df.head(100),width="stretch",hide_index=True)
         return
 
-    st.markdown("### 03 · ANALYSIS RESULTS")
-    render_results()
+    results=st.session_state.results
+    summary=summarize_results(results)
+    avg=sum(float(r.get("confidence",0)) for r in results)/len(results) if results else 0
+    st.markdown(
+        '<div class="hero"><div class="kicker">CONTROL CENTER · ANALYSIS COMPLETE</div>'
+        '<h1>Make sense of<br><span>every decision.</span></h1>'
+        '<p>Latest batch: '+str(st.session_state.source_name)+' · '+str(summary["total"])+' invoices analyzed.</p></div>',
+        unsafe_allow_html=True,
+    )
+    metrics(results)
+    st.markdown('<div class="dash-grid">',unsafe_allow_html=True)
+    st.markdown(
+        '<div class="card"><div class="card-title">Recent decisions</div>',
+        unsafe_allow_html=True,
+    )
+    out=build_results_df(results)
+    for _,row in out.head(5).iterrows():
+        status=str(row["status"])
+        dot="green" if status=="CLEAN" else "red"
+        st.markdown(
+            f'<div class="rowitem"><div><span class="dot dot-{dot}"></span><b>{row["invoice_id"]}</b><br><span class="muted">{row["vendor"]} · {row["category"]}</span></div>'
+            f'<div><b>{status}</b><br><span class="muted">{float(row["confidence"]):.0%} confidence</span></div></div>',
+            unsafe_allow_html=True,
+        )
+    st.markdown('</div>',unsafe_allow_html=True)
+    st.markdown(
+        f'<div><div class="card"><div class="card-title">Today’s AP note</div><h3>{summary["exceptions"]} exceptions</h3>'
+        f'<p class="muted">{summary["review_required"]} invoices are routed to human review. Review decisions remain separate from the rule engine.</p></div>'
+        f'<div style="height:16px"></div><div class="card"><div class="card-title">My files</div><h3>{st.session_state.source_name}</h3>'
+        f'<p class="muted">{len(st.session_state.df):,} rows · analyzed just now</p></div></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown('</div>',unsafe_allow_html=True)
+    st.markdown("### Analysis workspace")
+    tabs=st.tabs(["Decisions","Review","Evidence","Copilot"])
+    with tabs[0]: render_results()
+    with tabs[1]: review_tab()
+    with tabs[2]: evidence_tab()
+    with tabs[3]: copilot_tab()
 
-    tabs = st.tabs(["Review queue", "Evidence", "Copilot", "Audit & system"])
-    with tabs[0]:
-        review_tab()
-    with tabs[1]:
-        evidence_tab()
-    with tabs[2]:
-        copilot_tab()
-    with tabs[3]:
-        st.markdown("#### Session audit")
-        if st.session_state.audit:
-            st.dataframe(pd.DataFrame(st.session_state.audit), width="stretch", hide_index=True)
-        else:
-            st.info("No audit events in this session.")
-        st.markdown("#### Configuration")
+
+def exceptions_page():
+    st.markdown('<div class="hero"><div class="kicker">HUMAN REVIEW</div><h1>Resolve the<br><span>exception queue.</span></h1><p>Every flagged invoice is shown with its reason and evidence before a human decision.</p></div>',unsafe_allow_html=True)
+    if not st.session_state.analyzed:
+        st.info("Analyze an invoice batch first.")
+        return
+    review_tab()
+
+
+def evidence_page():
+    st.markdown('<div class="hero"><div class="kicker">TRACEABILITY</div><h1>See the<br><span>evidence.</span></h1><p>Inspect the exact rule IDs, trusted record fields and matched invoice evidence behind each decision.</p></div>',unsafe_allow_html=True)
+    if not st.session_state.analyzed:
+        st.info("Analyze an invoice batch first.")
+        return
+    evidence_tab()
+
+
+def copilot_page():
+    st.markdown('<div class="hero"><div class="kicker">FIN·LLM COPILOT</div><h1>Ask about<br><span>your AP data.</span></h1><p>Copilot answers FinSight-scoped questions and cites the available workflow context.</p></div>',unsafe_allow_html=True)
+    if not st.session_state.analyzed:
+        st.info("Analyze a batch first for invoice-specific answers.")
+    copilot_tab()
+
+
+def audit_page():
+    st.markdown('<div class="hero"><div class="kicker">AUDIT TRAIL</div><h1>Every action<br><span>has a record.</span></h1><p>Analysis and human-review actions are captured for traceability.</p></div>',unsafe_allow_html=True)
+    if st.session_state.audit:
+        st.dataframe(pd.DataFrame(st.session_state.audit),width="stretch",hide_index=True)
+    else:
+        st.info("No audit events yet.")
+    with st.expander("Engine configuration"):
         st.write({"required_columns": REQUIRED_COLUMNS, "category_limits": CATEGORY_LIMITS})
-        try:
-            from src.ai import test_gemini_connection
-            ok, msg = test_gemini_connection()
-            st.write({"Gemini": "Connected" if ok else "Not connected", "message": msg})
-        except Exception as exc:
-            st.write({"Gemini": "Not connected", "message": str(exc)})
 
-    st.markdown('<div class="footer">FINSIGHT · PYTHON RULE ENGINE IS THE SOURCE OF TRUTH · AI EXPLAINS, NEVER DECIDES</div>', unsafe_allow_html=True)
+
+def main():
+    page_nav()
+    topbar()
+    page = st.session_state.get("page", "Dashboard")
+    if page == "Dashboard":
+        dashboard_page()
+    elif page == "Exceptions":
+        exceptions_page()
+    elif page == "Evidence":
+        evidence_page()
+    elif page == "Copilot":
+        copilot_page()
+    elif page == "Audit":
+        audit_page()
+    st.markdown('<div class="footer">FINSIGHT · DETERMINISTIC ENGINE IS THE SOURCE OF TRUTH · AI EXPLAINS, NEVER DECIDES</div>', unsafe_allow_html=True)
 
 
 init_state()
