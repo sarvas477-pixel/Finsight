@@ -176,6 +176,11 @@ def render_results():
     metrics(results)
     out = build_results_df(results)
     st.markdown("### Decision results")
+    ai_count = sum(bool(r.get("ai_available")) for r in results)
+    dl_count = sum(bool(r.get("dl_available")) for r in results)
+    if ai_count or dl_count:
+        st.success(f"Hybrid AI active · trained model: {ai_count} · deep learning: {dl_count}")
+        st.caption("Final decisions combine deterministic policy rules with AI signals; human review remains available for uncertain cases.")
     st.dataframe(
         out[["invoice_id","vendor","amount","category","status","route","confidence","human_review_required"]],
         width="stretch",
