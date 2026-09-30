@@ -189,6 +189,49 @@ def process_invoices(df: pd.DataFrame) -> list[dict]:
             "reasons": reasons,
             "evidence": evidence,
         })
+    # Optional deep-learning layer. It is deliberately disabled for tiny batches
+    # so the existing deterministic behavior remains stable for sample/demo data.
+    if len(df) >= 8:
+        try:
+            from src.deep_learning import score_invoices
+            normal_mask = pd.Series([r["status"] == "CLEAN" for r in results], index=df.index)
+            dl_results = score_invoices(df, CATEGORY_LIMITS, normal_mask=normal_mask)
+            for result, dl in zip(results, dl_results):
+                result["dl_available"] = dl.available
+                result["dl_anomaly_score"] = round(float(dl.score), 4)
+                result["dl_status"] = dl.status
+                result["dl_reconstruction_error"] = round(float(dl.reconstruction_error), 6)
+                result["dl_reason"] = dl.reason
+                if dl.available and dl.status == "ANOMALY":
+                    result["rule_ids"].append("DL_ANOMALY")
+                    result["reasons"].append({
+                        "rule": "DL_ANOMALY",
+                        "message": dl.reason,
+                        "actual_value": round(float(dl.score), 4),
+                        "expected_value": "Neural anomaly score below 0.65.",
+                        "human_review_required": True,
+                    })
+                    result["status"] = "EXCEPTION"
+                    result["route"] = "HUMAN_REVIEW"
+                    result["human_review_required"] = True
+                    result["confidence"] = min(float(result["confidence"]), max(0.05, 1.0 - float(dl.score)))
+        except Exception:
+            # Deep learning is advisory. A missing/broken optional ML stack
+            # must never make the deterministic invoice analysis fail.
+            for result in results:
+                result.setdefault("dl_available", False)
+                result.setdefault("dl_anomaly_score", 0.0)
+                result.setdefault("dl_status", "UNAVAILABLE")
+                result.setdefault("dl_reconstruction_error", 0.0)
+                result.setdefault("dl_reason", "Deep-learning detector unavailable.")
+    else:
+        for result in results:
+            result["dl_available"] = False
+            result["dl_anomaly_score"] = 0.0
+            result["dl_status"] = "UNAVAILABLE"
+            result["dl_reconstruction_error"] = 0.0
+            result["dl_reason"] = "Deep-learning detector requires at least 8 invoices."
+
     return results
 
 def summarize_results(results):
