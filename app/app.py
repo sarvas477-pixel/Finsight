@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
 
 from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
 from src.rule_engine import process_invoices, summarize_results
+from src.auth import require_login
 
 
 st.set_page_config(
@@ -334,6 +335,12 @@ def main():
         for category, limit in CATEGORY_LIMITS.items():
             st.caption(f"{category} · ₹{limit:,.0f}")
 
+        st.divider()
+        if st.button("Log out", key="logout", width="stretch"):
+            st.session_state.authenticated = False
+            st.session_state.login_error = ""
+            st.rerun()
+
     st.markdown(
         f'<div class="top"><div class="brand">FINSIGHT <b>/ AP INTELLIGENCE</b></div>'
         f'<div class="live">● {st.session_state.source_name or "NO DATASET LOADED"}</div></div>',
@@ -449,4 +456,5 @@ def main():
     st.markdown('<div class="footer">FINSIGHT · PYTHON RULE ENGINE IS THE SOURCE OF TRUTH · AI EXPLAINS, NEVER DECIDES</div>', unsafe_allow_html=True)
 
 
-main()
+if require_login():
+    main()
