@@ -23,54 +23,40 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown(
-    """
-<style>
+st.markdown("""<style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root{--bg:#050914;--panel:#0b1628;--panel2:#0d1b30;--panel3:#101f35;--line:#1e2c44;--cyan:#00d9ff;--blue:#147bff;--violet:#715cff;--text:#f4f8ff;--muted:#b7c3d8;--steel:#65738b;--green:#35d07f;--amber:#f5b942;--red:#ff5c70}
-html,body,.stApp,[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 85% 0%,rgba(0,217,255,.055),transparent 24%),radial-gradient(circle at 10% 85%,rgba(113,92,255,.055),transparent 26%),var(--bg)!important;color:var(--text)!important}
-body,[class*="css"]{font-family:'Inter',sans-serif}
-[data-testid="stHeader"]{background:rgba(5,9,20,.82)!important;border-bottom:1px solid rgba(0,217,255,.08);backdrop-filter:blur(16px)}
-.block-container{max-width:1520px;padding:28px 36px 70px}
-h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important;color:var(--text)!important}
-p,label,span,.stMarkdown{color:var(--text)}
-[data-testid="stSidebar"],[data-testid="stSidebar"]>div{background:#07111f!important;border-right:1px solid var(--line)!important}
-[data-testid="stSidebar"] *{color:var(--text)!important}
-[data-testid="stSidebar"] .stCaption{color:var(--muted)!important}
-[data-testid="stSidebar"] .stButton button{background:#0b1628!important;border:1px solid rgba(0,217,255,.18)!important;color:var(--text)!important}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
-.brand{font:700 1.35rem 'Space Grotesk';letter-spacing:-.04em}.brand b{color:var(--cyan)}
-.live{border:1px solid rgba(53,208,127,.3);background:rgba(53,208,127,.08);border-radius:999px;padding:7px 11px;font-size:.68rem;font-weight:700;color:var(--green)!important;letter-spacing:.08em;text-transform:uppercase}
-.hero{position:relative;overflow:hidden;border:1px solid rgba(0,217,255,.16);border-radius:16px;padding:38px;background:linear-gradient(135deg,rgba(11,22,40,.96),rgba(7,17,31,.98));box-shadow:0 16px 40px rgba(0,4,15,.65),0 0 40px rgba(0,217,255,.04)}
-.hero:after{content:"";position:absolute;width:420px;height:420px;right:-180px;top:-220px;border-radius:50%;background:rgba(0,217,255,.07);filter:blur(90px)}
-.eyebrow{font:700 .68rem 'Space Grotesk';letter-spacing:.16em;color:var(--cyan)!important;text-transform:uppercase}
-.hero h1{font-size:clamp(2.7rem,5vw,5rem);line-height:.95;letter-spacing:-.07em;margin:13px 0 15px;position:relative;z-index:1}.hero h1 span{color:var(--cyan);text-shadow:0 0 28px rgba(0,217,255,.18)}
-.hero p{max-width:820px;color:var(--muted)!important;font-size:1rem;line-height:1.65;position:relative;z-index:1}
-.card,.metric{background:rgba(11,22,40,.88);border:1px solid rgba(0,217,255,.12);border-radius:12px;padding:20px;box-shadow:0 16px 40px rgba(0,4,15,.45)}
-.action{border-color:rgba(0,217,255,.25)!important;background:linear-gradient(135deg,rgba(11,22,40,.96),rgba(13,27,48,.9))!important}
-.metric{padding:16px 18px}.metric small{display:block;color:var(--steel)!important;text-transform:uppercase;letter-spacing:.12em;font:700 .64rem 'Space Grotesk'}.metric strong{display:block;font:700 2rem 'Space Grotesk';margin-top:6px}.safe strong{color:var(--green)}.flag strong{color:var(--red)}.review strong{color:var(--amber)}.score strong{color:var(--cyan)}
-.badge{display:inline-block;border:1px solid rgba(0,217,255,.2);border-radius:999px;padding:5px 9px;font:700 .68rem 'Space Grotesk';background:rgba(13,27,48,.8);letter-spacing:.06em}.clean{color:var(--green)!important}.exception{color:var(--red)!important}.human{color:var(--amber)!important}
-div.stButton>button,div.stDownloadButton>button{min-height:44px!important;border-radius:10px!important;border:1px solid rgba(0,217,255,.22)!important;background:#0b1628!important;color:var(--text)!important;font:600 14px 'Space Grotesk'!important;box-shadow:none!important}
-div.stButton>button:hover,div.stDownloadButton>button:hover{border-color:var(--cyan)!important;background:#0d1b30!important;transform:translateY(-1px)!important;box-shadow:0 0 24px rgba(0,217,255,.10)!important}
-button[kind="primary"]{background:linear-gradient(135deg,#00d9ff,#147bff)!important;color:#04101c!important;border:0!important;box-shadow:0 0 20px rgba(0,217,255,.28),0 4px 12px rgba(0,0,0,.5)!important}
-[data-testid="stFileUploader"],[data-testid="stFileUploader"] section{background:#0b1628!important;border:1px dashed rgba(0,217,255,.28)!important;border-radius:12px!important}
-[data-testid="stFileUploader"] button{background:#0d1b30!important;color:var(--text)!important;border:1px solid rgba(0,217,255,.2)!important}
-.stTextInput>div>div,.stTextArea>div>div,.stSelectbox>div>div,input,textarea,[data-baseweb="select"]>div{background:#07111f!important;color:var(--text)!important;border-color:rgba(0,217,255,.18)!important}
-[data-testid="stDataFrame"],[data-testid="stDataFrame"]>div{background:#0b1628!important;border:1px solid rgba(0,217,255,.12)!important;border-radius:10px!important;overflow:hidden}
-[data-testid="stTabs"] [role="tab"]{font:700 12px 'Space Grotesk';letter-spacing:.05em;color:var(--steel)!important}.stTabs [aria-selected="true"]{color:var(--cyan)!important}
-[data-testid="stChatMessage"]{background:#0b1628!important;border:1px solid rgba(0,217,255,.12)!important;border-radius:12px}
-[data-testid="stChatInput"]{background:#0b1628!important;border-color:rgba(0,217,255,.18)!important}
-[data-testid="stExpander"]{background:#0b1628!important;border:1px solid rgba(0,217,255,.12)!important;border-radius:10px}
-.stAlert{background:#0b1628!important;color:var(--text)!important;border:1px solid rgba(0,217,255,.14)!important}
-.muted{color:var(--muted)!important}.footer{text-align:center;color:var(--steel)!important;font:700 .62rem 'Space Grotesk';letter-spacing:.16em;margin-top:44px}
-[data-testid="stMetricValue"]{color:var(--text)!important;font-family:'Space Grotesk'!important}
+:root{--bg:#06101d;--surface:#0b1727;--surface2:#0f1e31;--line:#20344d;--text:#f4f8ff;--muted:#8fa3bb;--cyan:#19d9ff;--blue:#4c8dff;--green:#36d48a;--amber:#f5b942;--red:#ff6175}
+html,body,.stApp,[data-testid="stAppViewContainer"]{background:var(--bg)!important;color:var(--text)!important}
+body,[class*="css"]{font-family:Inter,sans-serif}
+[data-testid="stHeader"]{background:rgba(6,16,29,.9)!important}
+.block-container{max-width:1440px;padding:22px 34px 60px}
+h1,h2,h3,h4{font-family:"Space Grotesk",sans-serif!important;color:var(--text)!important}
+p,span,label{color:var(--text)}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0 22px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.logo{font:700 1.35rem "Space Grotesk";letter-spacing:-.04em}.logo span{color:var(--cyan)}
+.status{border:1px solid rgba(54,212,138,.25);background:rgba(54,212,138,.08);color:var(--green)!important;border-radius:999px;padding:7px 12px;font:700 .65rem "Space Grotesk";letter-spacing:.08em}
+.hero{padding:4px 0 28px}.kicker{color:var(--cyan)!important;font:700 .68rem "Space Grotesk";letter-spacing:.15em}
+.hero h1{font-size:clamp(2.6rem,5vw,4.8rem);line-height:.96;letter-spacing:-.065em;margin:12px 0}
+.hero h1 span{color:var(--cyan)}.hero p{max-width:720px;color:var(--muted)!important;line-height:1.65}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 16px 40px rgba(0,0,0,.2)}
+.panel-title{font:700 .7rem "Space Grotesk";letter-spacing:.12em;color:var(--muted)!important;text-transform:uppercase;margin-bottom:10px}
+.dropzone [data-testid="stFileUploader"] section{background:var(--surface2)!important;border:1px dashed #31506f!important;border-radius:14px!important}
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:17px}.metric small{display:block;color:var(--muted)!important;font:700 .63rem "Space Grotesk";letter-spacing:.1em;text-transform:uppercase}.metric strong{display:block;font:700 1.9rem "Space Grotesk";margin-top:6px}
+.safe strong{color:var(--green)}.flag strong{color:var(--red)}.review strong{color:var(--amber)}.score strong{color:var(--cyan)}
+div.stButton>button,div.stDownloadButton>button{min-height:42px!important;border-radius:9px!important;border:1px solid #29435e!important;background:var(--surface2)!important;color:var(--text)!important;font:600 13px "Space Grotesk"!important}
+div.stButton>button:hover,div.stDownloadButton>button:hover{border-color:var(--cyan)!important;transform:translateY(-1px)}
+button[kind="primary"]{background:linear-gradient(135deg,#19d9ff,#4c8dff)!important;color:#03111e!important;border:0!important}
+.stTextInput>div>div,.stTextArea>div>div,[data-baseweb="select"]>div{background:#081321!important;border-color:#29435e!important;color:var(--text)!important}
+[data-testid="stFileUploader"] section{background:var(--surface2)!important;border-color:#31506f!important}
+[data-testid="stDataFrame"]{border:1px solid var(--line)!important;border-radius:12px!important;overflow:hidden}
+[data-testid="stTabs"] [role="tab"]{color:var(--muted)!important;font:700 12px "Space Grotesk"!important}
+[data-testid="stTabs"] [aria-selected="true"]{color:var(--cyan)!important}
+[data-testid="stChatMessage"],[data-testid="stExpander"]{background:var(--surface)!important;border:1px solid var(--line)!important}
+.badge{display:inline-block;border-radius:999px;padding:5px 9px;border:1px solid var(--line);font:700 .65rem "Space Grotesk"}
+.clean{color:var(--green)!important}.exception{color:var(--red)!important}.human{color:var(--amber)!important}
+.muted{color:var(--muted)!important}.footer{margin-top:40px;text-align:center;color:#53677f!important;font:700 .6rem "Space Grotesk";letter-spacing:.14em}
 hr{border-color:var(--line)!important}
-code{background:#04101c!important;color:#9deeff!important}
-@media(max-width:800px){.block-container{padding:18px 12px 50px}.hero{padding:25px}.hero h1{font-size:3.3rem}}
-</style>
-""",
-    unsafe_allow_html=True,
-)
+</style>""", unsafe_allow_html=True)
 
 
 def init_state():
@@ -327,136 +313,119 @@ def copilot_tab():
 
 
 def main():
-    with st.sidebar:
-        st.markdown("## ✦ FinSight")
-        st.caption("Accounts-payable intelligence")
-        st.markdown('<span class="live">● RULE ENGINE ONLINE</span>', unsafe_allow_html=True)
-        st.divider()
-        st.markdown("**Required CSV columns**")
-        st.code("\n".join(REQUIRED_COLUMNS), language="text")
-        st.markdown("**Configured limits**")
-        for category, limit in CATEGORY_LIMITS.items():
-            st.caption(f"{category} · ₹{limit:,.0f}")
-
-        st.divider()
-        if st.button("Log out", key="logout", width="stretch"):
-            st.session_state.authenticated = False
-            st.session_state.login_error = ""
-            st.rerun()
-
     st.markdown(
-        f'<div class="top"><div class="brand">FINSIGHT <b>/ AP INTELLIGENCE</b></div>'
-        f'<div class="live">● {st.session_state.source_name or "NO DATASET LOADED"}</div></div>',
+        '<div class="nav"><div class="logo">Fin<span>Sight</span> <small>/ AP INTELLIGENCE</small></div>'
+        '<div class="status">● RULE ENGINE ONLINE</div></div>',
         unsafe_allow_html=True,
     )
 
-    st.markdown(
-        '<div class="hero"><div class="eyebrow">INVOICE INTELLIGENCE · EVIDENCE · HUMAN REVIEW</div>'
-        '<h1>Analyze every invoice.<br><span>See every decision.</span></h1>'
-        '<p>Upload a CSV, run the deterministic rule engine, inspect the exact evidence behind each result, and send uncertain cases to human review.</p></div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("### 01 · LOAD INVOICE DATA")
-    upload_col, sample_col, reset_col = st.columns([5, 1.5, 1.2])
-    with upload_col:
-        uploaded = st.file_uploader(
-            "Invoice CSV",
-            type=["csv"],
-            key="invoice_upload",
-            help="Required: invoice_id, vendor, amount, category, invoice_date",
+    if st.session_state.df is None:
+        st.markdown(
+            '<div class="hero"><div class="kicker">INVOICE INTELLIGENCE</div>'
+            '<h1>Know every invoice.<br><span>Trust every decision.</span></h1>'
+            '<p>A focused workspace for invoice analysis, exceptions, evidence and human review. '
+            'The deterministic rule engine stays the source of truth.</p></div>',
+            unsafe_allow_html=True,
         )
-    with sample_col:
-        st.write("")
-        st.write("")
-        if st.button("Load sample", key="load_sample", width="stretch"):
-            reset_workspace(load_sample(), "data/invoices.csv")
+
+        left, right = st.columns([1.55, 1])
+        with left:
+            st.markdown('<div class="panel-title">01 · Load data</div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="panel"><h3>Upload your invoice CSV</h3>'
+                '<p class="muted">Required columns: invoice_id, vendor, amount, category, invoice_date.</p></div>',
+                unsafe_allow_html=True,
+            )
+            uploaded = st.file_uploader("Invoice CSV", type=["csv"], key="invoice_upload")
+        with right:
+            st.markdown('<div class="panel-title">Quick start</div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="panel"><h3>Test with sample data</h3>'
+                '<p class="muted">Load the bundled five-invoice dataset and run the complete workflow.</p></div>',
+                unsafe_allow_html=True,
+            )
+            if st.button("Load sample dataset", key="load_sample", type="primary", width="stretch"):
+                reset_workspace(load_sample(), "data/invoices.csv")
+                st.rerun()
+
+        if uploaded is not None and uploaded.name != st.session_state.source_name:
+            try:
+                reset_workspace(pd.read_csv(uploaded), uploaded.name)
+                st.rerun()
+            except Exception as exc:
+                st.error(f"Could not read CSV: {exc}")
+
+        st.markdown("### The workflow")
+        a, b, c = st.columns(3)
+        for col, title, body in [
+            (a, "01 · Analyze", "Deterministic rules produce each invoice decision."),
+            (b, "02 · Review", "Exceptions and uncertain cases go to a human."),
+            (c, "03 · Explain", "Evidence and rule IDs show exactly why a result happened."),
+        ]:
+            with col:
+                st.markdown(
+                    f'<div class="panel"><h4>{title}</h4><p class="muted">{body}</p></div>',
+                    unsafe_allow_html=True,
+                )
+        st.markdown('<div class="footer">FINSIGHT · RULES FIRST · HUMAN JUDGMENT</div>', unsafe_allow_html=True)
+        return
+
+    st.markdown(
+        f'<div class="hero"><div class="kicker">WORKSPACE · {st.session_state.source_name.upper()}</div>'
+        f'<h1>Ready to <span>analyze.</span></h1>'
+        f'<p>{len(st.session_state.df):,} invoice rows loaded. Run the deterministic engine, then review every decision from one screen.</p></div>',
+        unsafe_allow_html=True,
+    )
+
+    a, b, c = st.columns([4, 1.2, 1])
+    with a:
+        st.markdown(
+            f'<div class="panel"><b>{st.session_state.source_name}</b><br>'
+            f'<span class="muted">{len(st.session_state.df):,} rows · {len(st.session_state.df.columns)} columns</span></div>',
+            unsafe_allow_html=True,
+        )
+    with b:
+        if st.button("Analyze", key="analyze_btn", type="primary", width="stretch"):
+            run_analysis()
             st.rerun()
-    with reset_col:
-        st.write("")
-        st.write("")
+    with c:
         if st.button("Reset", key="reset_workspace", width="stretch"):
             reset_workspace()
             st.rerun()
 
-    if uploaded is not None and uploaded.name != st.session_state.source_name:
-        try:
-            reset_workspace(pd.read_csv(uploaded), uploaded.name)
-            st.toast(f"{uploaded.name} loaded", icon="✨")
-        except Exception as exc:
-            st.error(f"Could not read CSV: {exc}")
-
-    if st.session_state.df is None:
-        st.markdown(
-            '<div class="card action"><h3>Nothing loaded yet</h3>'
-            '<p class="muted">Load the bundled sample or upload your own CSV. The Analyze button will appear here as soon as data is ready.</p></div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown("### What FinSight checks")
-        a,b,c,d = st.columns(4)
-        for col, num, title, body in [
-            (a,"01","Schema","Required fields, missing values, dates and amounts."),
-            (b,"02","Rules","Category limits, invalid values and duplicate invoices."),
-            (c,"03","Review","Uncertain exceptions are routed to a human."),
-            (d,"04","Evidence","Every decision includes rule IDs and matched records."),
-        ]:
-            with col:
-                st.markdown(f'<div class="card"><b>{num}</b><h4>{title}</h4><p class="muted">{body}</p></div>', unsafe_allow_html=True)
-        st.markdown('<div class="footer">FINSIGHT · DETERMINISTIC DECISIONS · HUMAN JUDGMENT</div>', unsafe_allow_html=True)
-        return
-
-    df = st.session_state.df
-    st.markdown("### 02 · RUN DETERMINISTIC ANALYSIS")
-    left, right = st.columns([4, 1.5])
-    with left:
-        st.markdown(
-            f'<div class="card"><b>{st.session_state.source_name}</b><br>'
-            f'<span class="muted">{len(df):,} invoice rows loaded · {len(df.columns)} columns · required schema checked when analysis runs</span></div>',
-            unsafe_allow_html=True,
-        )
-    with right:
-        if st.button("✦ ANALYZE INVOICES", key="analyze_btn", type="primary", width="stretch"):
-            run_analysis()
-            st.rerun()
-
-    st.markdown("### SOURCE PREVIEW")
-    st.dataframe(df.head(100), width="stretch", hide_index=True)
+    with st.expander("Preview uploaded data"):
+        st.dataframe(st.session_state.df.head(100), width="stretch", hide_index=True)
 
     if not st.session_state.analyzed:
-        st.markdown(
-            '<div class="card action"><h3>Ready to analyze</h3>'
-            '<p class="muted">Press <b>ANALYZE INVOICES</b> above. Results will appear directly below — no separate page or hidden navigation required.</p></div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('<div class="footer">FINSIGHT · READY FOR ANALYSIS</div>', unsafe_allow_html=True)
+        st.info("Ready. Click Analyze to generate invoice decisions.")
+        st.markdown('<div class="footer">FINSIGHT · READY</div>', unsafe_allow_html=True)
         return
 
-    st.markdown("### 03 · ANALYSIS RESULTS")
-    render_results()
-
-    tabs = st.tabs(["Review queue", "Evidence", "Copilot", "Audit & system"])
+    st.markdown("### Results")
+    tabs = st.tabs(["Decisions", "Review", "Evidence", "Copilot"])
     with tabs[0]:
-        review_tab()
+        render_results()
     with tabs[1]:
-        evidence_tab()
+        review_tab()
     with tabs[2]:
-        copilot_tab()
+        evidence_tab()
     with tabs[3]:
-        st.markdown("#### Session audit")
+        copilot_tab()
+
+    with st.expander("Session audit & system status"):
         if st.session_state.audit:
             st.dataframe(pd.DataFrame(st.session_state.audit), width="stretch", hide_index=True)
         else:
-            st.info("No audit events in this session.")
-        st.markdown("#### Configuration")
-        st.write({"required_columns": REQUIRED_COLUMNS, "category_limits": CATEGORY_LIMITS})
-        try:
-            from src.ai import test_gemini_connection
-            ok, msg = test_gemini_connection()
-            st.write({"Gemini": "Connected" if ok else "Not connected", "message": msg})
-        except Exception as exc:
-            st.write({"Gemini": "Not connected", "message": str(exc)})
+            st.info("No audit events yet.")
+        st.caption("Required schema")
+        st.code(", ".join(REQUIRED_COLUMNS))
+        st.caption("Configured category limits")
+        st.write(CATEGORY_LIMITS)
 
-    st.markdown('<div class="footer">FINSIGHT · PYTHON RULE ENGINE IS THE SOURCE OF TRUTH · AI EXPLAINS, NEVER DECIDES</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="footer">FINSIGHT · DETERMINISTIC ENGINE IS THE SOURCE OF TRUTH · AI EXPLAINS, NEVER DECIDES</div>',
+        unsafe_allow_html=True,
+    )
 
 
 init_state()
