@@ -26,41 +26,46 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root{--bg:#f6f7fb;--card:#fff;--line:#e5e7ef;--text:#171a28;--muted:#687086;--violet:#6747f5;--pink:#e44991;--cyan:#079bb8;--green:#159568;--amber:#b47700;--red:#d83b5d}
-html,body,.stApp,[data-testid="stAppViewContainer"]{background:linear-gradient(180deg,#fcfdff 0%,#f4f6fb 100%)!important;color:var(--text)!important}
-body,[class*="css"]{font-family:'DM Sans',sans-serif}
-[data-testid="stHeader"]{background:rgba(255,255,255,.92)!important;border-bottom:1px solid var(--line)}
-.block-container{max-width:1500px;padding:26px 36px 70px}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{--bg:#050914;--panel:#0b1628;--panel2:#0d1b30;--panel3:#101f35;--line:#1e2c44;--cyan:#00d9ff;--blue:#147bff;--violet:#715cff;--text:#f4f8ff;--muted:#b7c3d8;--steel:#65738b;--green:#35d07f;--amber:#f5b942;--red:#ff5c70}
+html,body,.stApp,[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 85% 0%,rgba(0,217,255,.055),transparent 24%),radial-gradient(circle at 10% 85%,rgba(113,92,255,.055),transparent 26%),var(--bg)!important;color:var(--text)!important}
+body,[class*="css"]{font-family:'Inter',sans-serif}
+[data-testid="stHeader"]{background:rgba(5,9,20,.82)!important;border-bottom:1px solid rgba(0,217,255,.08);backdrop-filter:blur(16px)}
+.block-container{max-width:1520px;padding:28px 36px 70px}
 h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important;color:var(--text)!important}
 p,label,span,.stMarkdown{color:var(--text)}
-[data-testid="stSidebar"],[data-testid="stSidebar"]>div{background:#fff!important;border-right:1px solid var(--line)!important}
+[data-testid="stSidebar"],[data-testid="stSidebar"]>div{background:#07111f!important;border-right:1px solid var(--line)!important}
 [data-testid="stSidebar"] *{color:var(--text)!important}
 [data-testid="stSidebar"] .stCaption{color:var(--muted)!important}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.brand{font:700 1.35rem 'Space Grotesk';letter-spacing:-.04em}.brand b{color:var(--violet)}
-.live{border:1px solid #dce8e3;background:#f2fbf7;border-radius:999px;padding:7px 11px;font-size:.72rem;font-weight:700;color:var(--green)!important}
-.hero{position:relative;overflow:hidden;border:1px solid #e2e4ee;border-radius:28px;padding:38px;background:radial-gradient(circle at 90% 5%,rgba(103,71,245,.15),transparent 30%),linear-gradient(135deg,#fff,#f7f4ff 70%,#effcff);box-shadow:0 20px 60px rgba(40,44,70,.08)}
-.eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.2em;color:#6949df!important}
-.hero h1{font-size:clamp(2.7rem,5vw,5.3rem);line-height:.92;letter-spacing:-.07em;margin:13px 0 15px}.hero h1 span{background:linear-gradient(90deg,var(--pink),var(--violet),var(--cyan));-webkit-background-clip:text;color:transparent}
-.hero p{max-width:760px;color:#5e6679!important;font-size:1rem;line-height:1.65}
-.card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 10px 35px rgba(38,42,68,.055)}
-.action{border:2px solid #d9d1ff!important;background:linear-gradient(135deg,#fff,#faf8ff)!important}
-.metric{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:0 8px 25px rgba(38,42,68,.05)}.metric small{display:block;color:var(--muted)!important;text-transform:uppercase;letter-spacing:.12em;font-size:.64rem}.metric strong{display:block;font:700 2rem 'Space Grotesk';margin-top:6px}.safe strong{color:var(--green)}.flag strong{color:var(--red)}.review strong{color:var(--amber)}.score strong{color:var(--cyan)}
-.badge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:.68rem;font-weight:800;background:#fff}.clean{color:var(--green)!important}.exception{color:var(--red)!important}.human{color:var(--amber)!important}
-div.stButton>button,div.stDownloadButton>button{min-height:44px!important;border-radius:12px!important;border:1px solid #dfe2ea!important;background:#fff!important;color:#252a39!important;font-weight:700!important;box-shadow:0 4px 12px rgba(30,35,60,.04)!important}
-div.stButton>button:hover,div.stDownloadButton>button:hover{border-color:#bdb0ff!important;transform:translateY(-1px)!important}
-button[kind="primary"]{background:linear-gradient(100deg,#e44991,#6747f5)!important;color:#fff!important;border:0!important;box-shadow:0 12px 30px rgba(103,71,245,.2)!important}
-[data-testid="stFileUploader"],[data-testid="stFileUploader"] section{background:#fff!important;border:1px dashed #cbd0df!important;border-radius:16px!important}
-[data-testid="stFileUploader"] button{background:#f7f8fc!important;color:#222739!important;border:1px solid #dfe2ea!important}
-.stTextInput>div>div,.stTextArea>div>div,.stSelectbox>div>div,input,textarea,[data-baseweb="select"]>div{background:#fff!important;color:#1b2030!important;border-color:#d9dce6!important}
-[data-testid="stDataFrame"],[data-testid="stDataFrame"]>div{background:#fff!important;border:1px solid var(--line)!important;border-radius:15px!important;overflow:hidden}
-[data-testid="stTabs"] [role="tab"]{font-weight:700;color:#687086!important}.stTabs [aria-selected="true"]{color:#6747f5!important}
-[data-testid="stChatMessage"]{background:#fff!important;border:1px solid var(--line)!important;border-radius:16px!important}
-[data-testid="stChatInput"]{background:#fff!important;border-color:#d9dce6!important}
-[data-testid="stExpander"]{background:#fff!important;border:1px solid var(--line)!important;border-radius:14px!important}
-.stAlert{background:#fff!important;color:#1b2030!important;border:1px solid var(--line)!important}
-.muted{color:var(--muted)!important}.footer{text-align:center;color:#9298a8!important;font-size:.62rem;letter-spacing:.16em;margin-top:44px}
+[data-testid="stSidebar"] .stButton button{background:#0b1628!important;border:1px solid rgba(0,217,255,.18)!important;color:var(--text)!important}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.brand{font:700 1.35rem 'Space Grotesk';letter-spacing:-.04em}.brand b{color:var(--cyan)}
+.live{border:1px solid rgba(53,208,127,.3);background:rgba(53,208,127,.08);border-radius:999px;padding:7px 11px;font-size:.68rem;font-weight:700;color:var(--green)!important;letter-spacing:.08em;text-transform:uppercase}
+.hero{position:relative;overflow:hidden;border:1px solid rgba(0,217,255,.16);border-radius:16px;padding:38px;background:linear-gradient(135deg,rgba(11,22,40,.96),rgba(7,17,31,.98));box-shadow:0 16px 40px rgba(0,4,15,.65),0 0 40px rgba(0,217,255,.04)}
+.hero:after{content:"";position:absolute;width:420px;height:420px;right:-180px;top:-220px;border-radius:50%;background:rgba(0,217,255,.07);filter:blur(90px)}
+.eyebrow{font:700 .68rem 'Space Grotesk';letter-spacing:.16em;color:var(--cyan)!important;text-transform:uppercase}
+.hero h1{font-size:clamp(2.7rem,5vw,5rem);line-height:.95;letter-spacing:-.07em;margin:13px 0 15px;position:relative;z-index:1}.hero h1 span{color:var(--cyan);text-shadow:0 0 28px rgba(0,217,255,.18)}
+.hero p{max-width:820px;color:var(--muted)!important;font-size:1rem;line-height:1.65;position:relative;z-index:1}
+.card,.metric{background:rgba(11,22,40,.88);border:1px solid rgba(0,217,255,.12);border-radius:12px;padding:20px;box-shadow:0 16px 40px rgba(0,4,15,.45)}
+.action{border-color:rgba(0,217,255,.25)!important;background:linear-gradient(135deg,rgba(11,22,40,.96),rgba(13,27,48,.9))!important}
+.metric{padding:16px 18px}.metric small{display:block;color:var(--steel)!important;text-transform:uppercase;letter-spacing:.12em;font:700 .64rem 'Space Grotesk'}.metric strong{display:block;font:700 2rem 'Space Grotesk';margin-top:6px}.safe strong{color:var(--green)}.flag strong{color:var(--red)}.review strong{color:var(--amber)}.score strong{color:var(--cyan)}
+.badge{display:inline-block;border:1px solid rgba(0,217,255,.2);border-radius:999px;padding:5px 9px;font:700 .68rem 'Space Grotesk';background:rgba(13,27,48,.8);letter-spacing:.06em}.clean{color:var(--green)!important}.exception{color:var(--red)!important}.human{color:var(--amber)!important}
+div.stButton>button,div.stDownloadButton>button{min-height:44px!important;border-radius:10px!important;border:1px solid rgba(0,217,255,.22)!important;background:#0b1628!important;color:var(--text)!important;font:600 14px 'Space Grotesk'!important;box-shadow:none!important}
+div.stButton>button:hover,div.stDownloadButton>button:hover{border-color:var(--cyan)!important;background:#0d1b30!important;transform:translateY(-1px)!important;box-shadow:0 0 24px rgba(0,217,255,.10)!important}
+button[kind="primary"]{background:linear-gradient(135deg,#00d9ff,#147bff)!important;color:#04101c!important;border:0!important;box-shadow:0 0 20px rgba(0,217,255,.28),0 4px 12px rgba(0,0,0,.5)!important}
+[data-testid="stFileUploader"],[data-testid="stFileUploader"] section{background:#0b1628!important;border:1px dashed rgba(0,217,255,.28)!important;border-radius:12px!important}
+[data-testid="stFileUploader"] button{background:#0d1b30!important;color:var(--text)!important;border:1px solid rgba(0,217,255,.2)!important}
+.stTextInput>div>div,.stTextArea>div>div,.stSelectbox>div>div,input,textarea,[data-baseweb="select"]>div{background:#07111f!important;color:var(--text)!important;border-color:rgba(0,217,255,.18)!important}
+[data-testid="stDataFrame"],[data-testid="stDataFrame"]>div{background:#0b1628!important;border:1px solid rgba(0,217,255,.12)!important;border-radius:10px!important;overflow:hidden}
+[data-testid="stTabs"] [role="tab"]{font:700 12px 'Space Grotesk';letter-spacing:.05em;color:var(--steel)!important}.stTabs [aria-selected="true"]{color:var(--cyan)!important}
+[data-testid="stChatMessage"]{background:#0b1628!important;border:1px solid rgba(0,217,255,.12)!important;border-radius:12px}
+[data-testid="stChatInput"]{background:#0b1628!important;border-color:rgba(0,217,255,.18)!important}
+[data-testid="stExpander"]{background:#0b1628!important;border:1px solid rgba(0,217,255,.12)!important;border-radius:10px}
+.stAlert{background:#0b1628!important;color:var(--text)!important;border:1px solid rgba(0,217,255,.14)!important}
+.muted{color:var(--muted)!important}.footer{text-align:center;color:var(--steel)!important;font:700 .62rem 'Space Grotesk';letter-spacing:.16em;margin-top:44px}
+[data-testid="stMetricValue"]{color:var(--text)!important;font-family:'Space Grotesk'!important}
+hr{border-color:var(--line)!important}
+code{background:#04101c!important;color:#9deeff!important}
 @media(max-width:800px){.block-container{padding:18px 12px 50px}.hero{padding:25px}.hero h1{font-size:3.3rem}}
 </style>
 """,
@@ -176,7 +181,7 @@ def render_results():
 
     metrics(results)
     out = build_results_df(results)
-    st.markdown("### Decision results")
+    st.markdown("### DECISION RESULTS")
     st.dataframe(
         out[["invoice_id","vendor","amount","category","status","route","confidence","human_review_required"]],
         width="stretch",
@@ -190,7 +195,7 @@ def render_results():
 
     exceptions = out[out.status == "EXCEPTION"].copy()
     if not exceptions.empty:
-        st.markdown("### Exceptions")
+        st.markdown("### EXCEPTIONS")
         st.dataframe(
             exceptions[["invoice_id","vendor","amount","category","rule_ids","reasons","route"]],
             width="stretch",
@@ -348,13 +353,13 @@ def main():
     )
 
     st.markdown(
-        '<div class="hero"><div class="eyebrow">INVOICE CONTROL · EVIDENCE · HUMAN REVIEW</div>'
+        '<div class="hero"><div class="eyebrow">INVOICE INTELLIGENCE · EVIDENCE · HUMAN REVIEW</div>'
         '<h1>Analyze every invoice.<br><span>See every decision.</span></h1>'
         '<p>Upload a CSV, run the deterministic rule engine, inspect the exact evidence behind each result, and send uncertain cases to human review.</p></div>',
         unsafe_allow_html=True,
     )
 
-    st.markdown("### 1 · Load your invoice data")
+    st.markdown("### 01 · LOAD INVOICE DATA")
     upload_col, sample_col, reset_col = st.columns([5, 1.5, 1.2])
     with upload_col:
         uploaded = st.file_uploader(
@@ -403,7 +408,7 @@ def main():
         return
 
     df = st.session_state.df
-    st.markdown("### 2 · Run the analysis")
+    st.markdown("### 02 · RUN DETERMINISTIC ANALYSIS")
     left, right = st.columns([4, 1.5])
     with left:
         st.markdown(
@@ -416,7 +421,7 @@ def main():
             run_analysis()
             st.rerun()
 
-    st.markdown("### Source preview")
+    st.markdown("### SOURCE PREVIEW")
     st.dataframe(df.head(100), width="stretch", hide_index=True)
 
     if not st.session_state.analyzed:
@@ -428,7 +433,7 @@ def main():
         st.markdown('<div class="footer">FINSIGHT · READY FOR ANALYSIS</div>', unsafe_allow_html=True)
         return
 
-    st.markdown("### 3 · Analysis results")
+    st.markdown("### 03 · ANALYSIS RESULTS")
     render_results()
 
     tabs = st.tabs(["Review queue", "Evidence", "Copilot", "Audit & system"])
