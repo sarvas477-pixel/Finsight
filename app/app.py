@@ -327,8 +327,6 @@ def copilot_tab():
 
 
 def main():
-    init_state()
-
     with st.sidebar:
         st.markdown("## ✦ FinSight")
         st.caption("Accounts-payable intelligence")
@@ -461,5 +459,6 @@ def main():
     st.markdown('<div class="footer">FINSIGHT · PYTHON RULE ENGINE IS THE SOURCE OF TRUTH · AI EXPLAINS, NEVER DECIDES</div>', unsafe_allow_html=True)
 
 
+init_state()
 if require_login():
     main()
