@@ -58,9 +58,9 @@ def render_login() -> None:
         <style>
         [data-testid="stAppViewContainer"] {
             background:
-                radial-gradient(circle at 18% 20%, rgba(0, 229, 255, .10), transparent 28%),
-                radial-gradient(circle at 82% 78%, rgba(125, 92, 255, .14), transparent 30%),
-                #050812 !important;
+                radial-gradient(circle at 18% 20%, rgba(0, 217, 255, .10), transparent 28%),
+                radial-gradient(circle at 82% 78%, rgba(113, 92, 255, .10), transparent 30%),
+                #050914 !important;
         }
         [data-testid="stHeader"] { background: transparent !important; }
         [data-testid="stSidebar"] { display: none !important; }
@@ -75,9 +75,9 @@ def render_login() -> None:
         .login-shell {
             width: min(460px, 100%);
             padding: 38px;
-            border: 1px solid rgba(105, 190, 255, .20);
+            border: 1px solid rgba(0, 217, 255, .18);
             border-radius: 28px;
-            background: linear-gradient(145deg, rgba(15, 23, 42, .94), rgba(7, 12, 25, .96));
+            background: linear-gradient(145deg, rgba(11, 22, 40, .96), rgba(5, 9, 20, .98));
             box-shadow:
                 0 0 70px rgba(0, 198, 255, .08),
                 0 28px 90px rgba(0, 0, 0, .45);
@@ -97,7 +97,7 @@ def render_login() -> None:
             border-radius: 12px;
             display: grid;
             place-items: center;
-            background: linear-gradient(135deg, #00d9ff, #715cff);
+            background: linear-gradient(135deg, #00d9ff, #147bff);
             box-shadow: 0 0 30px rgba(0, 217, 255, .28);
             color: #06101d !important;
             font-weight: 900;
@@ -122,7 +122,7 @@ def render_login() -> None:
             margin: 14px 0 7px;
         }
         .stTextInput input {
-            background: rgba(5, 10, 22, .78) !important;
+            background: rgba(7, 17, 31, .92) !important;
             color: #f3f7ff !important;
             border: 1px solid rgba(137, 154, 184, .22) !important;
             border-radius: 12px !important;
