@@ -1,0 +1,41 @@
+invoice_id,vendor,amount,category,invoice_date,risk_label
+TR001,ABC Supplies,1200,Office,2026-08-01,0
+TR002,ABC Supplies,1800,Office,2026-08-02,0
+TR003,Office Mart,800,Office,2026-08-03,0
+TR004,Office Mart,900,Office,2026-08-04,0
+TR005,IT World,3000,IT,2026-08-05,0
+TR006,IT World,4200,IT,2026-08-06,0
+TR007,Travel Hub,4000,Travel,2026-08-07,0
+TR008,Travel Hub,5200,Travel,2026-08-08,0
+TR009,Food Corner,1000,Food,2026-08-09,0
+TR010,Food Corner,1400,Food,2026-08-10,0
+TR011,Alpha Ltd,7000,Office,2026-08-11,0
+TR012,Beta Systems,7000,IT,2026-08-12,0
+TR013,Gamma Travel,9000,Travel,2026-08-13,0
+TR014,Delta Foods,3000,Food,2026-08-14,0
+TR015,Omega Office,9800,Office,2026-08-15,0
+TR016,Omega IT,9800,IT,2026-08-16,0
+TR017,Alpha Ltd,10000,Office,2026-08-17,0
+TR018,Beta Systems,10000,IT,2026-08-18,0
+TR019,Gamma Travel,14900,Travel,2026-08-19,0
+TR020,Delta Foods,4900,Food,2026-08-20,0
+TR021,Risky Co,18000,Office,2026-08-21,1
+TR022,Risky Co,25000,IT,2026-08-22,1
+TR023,Risky Travel,24000,Travel,2026-08-23,1
+TR024,Risky Food,8000,Food,2026-08-24,1
+TR025,,1200,Travel,2026-08-25,1
+TR026,,7000,Office,2026-08-26,1
+TR027,,22000,IT,2026-08-27,1
+TR028,Unknown Vendor,30000,Travel,2026-08-28,1
+TR029,Unknown Vendor,12000,Food,2026-08-29,1
+TR030,Unknown Vendor,22000,Office,2026-08-30,1
+TR031,Risky Co,20000,Office,2026-08-31,1
+TR032,Risky Co,22000,IT,2026-09-01,1
+TR033,Risky Travel,30000,Travel,2026-09-02,1
+TR034,Risky Food,9000,Food,2026-09-03,1
+TR035,,15000,Office,2026-09-04,1
+TR036,Unknown Vendor,20000,IT,2026-09-05,1
+TR037,Alpha Ltd,5000,Office,2026-09-06,0
+TR038,Beta Systems,5000,IT,2026-09-07,0
+TR039,Gamma Travel,8000,Travel,2026-09-08,0
+TR040,Delta Foods,2500,Food,2026-09-09,0
