@@ -189,6 +189,54 @@ def process_invoices(df: pd.DataFrame) -> list[dict]:
             "reasons": reasons,
             "evidence": evidence,
         })
+    # Hybrid AI layer: supervised risk model + neural anomaly detector.
+    # Both are advisory; deterministic rules remain authoritative.
+    try:
+        from src.trained_ai import predict as predict_ai
+        ai_results = predict_ai(df, CATEGORY_LIMITS)
+    except Exception:
+        ai_results = [{"available": False, "risk_score": 0.0, "reason": "Trained AI unavailable."} for _ in results]
+
+    try:
+        from src.deep_learning import score_invoices
+        normal_mask = pd.Series([r.get("status") == "CLEAN" for r in results], index=df.index)
+        dl_results = score_invoices(df, CATEGORY_LIMITS, normal_mask=normal_mask)
+    except Exception:
+        dl_results = []
+
+    for i, result in enumerate(results):
+        ai = ai_results[i] if i < len(ai_results) else {"available": False, "risk_score": 0.0, "reason": "Trained AI unavailable."}
+        dl = dl_results[i] if i < len(dl_results) else None
+        result["ai_available"] = bool(ai.get("available"))
+        result["ai_risk_score"] = float(ai.get("risk_score", 0.0))
+        result["ai_risk_status"] = ai.get("status", "UNAVAILABLE")
+        result["ai_reason"] = ai.get("reason", "Trained AI unavailable.")
+        result["dl_available"] = bool(dl and dl.available)
+        result["dl_anomaly_score"] = float(dl.score) if dl else 0.0
+        result["dl_status"] = dl.status if dl else "UNAVAILABLE"
+        result["dl_reason"] = dl.reason if dl else "Deep-learning detector unavailable."
+
+        if ai.get("available") or (dl and dl.available):
+            signals = [result["ai_risk_score"] if ai.get("available") else 0.0,
+                       float(dl.score) if dl and dl.available else 0.0]
+            hybrid_score = max(signals) if len(signals) < 2 else (0.6 * signals[0] + 0.4 * signals[1])
+            result["hybrid_risk_score"] = round(float(hybrid_score), 4)
+            result["hybrid_status"] = "HIGH_RISK" if hybrid_score >= 0.65 else "LOW_RISK"
+            result["ai_explanation"] = "Supervised model estimates elevated risk." if signals[0] >= 0.65 else "Supervised model estimates low risk."
+            if dl and dl.available and dl.status == "ANOMALY":
+                result["rule_ids"].append("DL_ANOMALY")
+                result["reasons"].append({"rule": "DL_ANOMALY", "message": dl.reason,
+                    "actual_value": round(float(dl.score), 4), "expected_value": "Anomaly score below 0.65.",
+                    "human_review_required": True})
+            if hybrid_score >= 0.65:
+                result["status"] = "EXCEPTION"
+                result["route"] = "HUMAN_REVIEW"
+                result["human_review_required"] = True
+        else:
+            result["hybrid_risk_score"] = 0.0
+            result["hybrid_status"] = "UNAVAILABLE"
+            result["ai_explanation"] = "AI risk scoring unavailable; deterministic rules remain authoritative."
+
     return results
 
 def summarize_results(results):
