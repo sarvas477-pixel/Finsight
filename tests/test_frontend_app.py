@@ -8,7 +8,12 @@ def test_frontend_primary_workflow():
     at = AppTest.from_file(
         Path(__file__).resolve().parents[1] / "app" / "app.py",
         default_timeout=20,
-    ).run()
+    )
+    # The application now has an authentication gate. Seed an authenticated
+    # session for this workflow test so it exercises the actual workspace
+    # rather than testing the login form.
+    at.session_state["authenticated"] = True
+    at.run()
 
     assert not at.exception, at.exception
     assert at.session_state.df is None
