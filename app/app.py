@@ -56,6 +56,26 @@ button[kind="primary"]{background:linear-gradient(135deg,#19d9ff,#4c8dff)!import
 .clean{color:var(--green)!important}.exception{color:var(--red)!important}.human{color:var(--amber)!important}
 .muted{color:var(--muted)!important}.footer{margin-top:40px;text-align:center;color:#53677f!important;font:700 .6rem "Space Grotesk";letter-spacing:.14em}
 hr{border-color:var(--line)!important}
+
+/* FinSight dashboard shell */
+[data-testid="stSidebar"]{background:#08111f!important;border-right:1px solid #1d3047!important}
+[data-testid="stSidebar"]>div{padding-top:18px!important}
+.side-brand{font:700 20px "Space Grotesk";letter-spacing:-.04em;padding:4px 8px 20px;border-bottom:1px solid #1d3047;margin-bottom:14px}
+.side-brand b{color:#19d9ff}
+.side-section{font:700 9px "Space Grotesk";letter-spacing:.14em;color:#61758e!important;margin:18px 8px 7px;text-transform:uppercase}
+.side-copy{color:#71859d!important;font-size:11px;line-height:1.5;padding:0 8px 12px}
+.topline{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1d3047;padding-bottom:16px;margin-bottom:22px}
+.crumb{font:600 11px "Space Grotesk";color:#6f839c!important;letter-spacing:.03em}
+.userpill{font:600 11px "Space Grotesk";color:#b8c7d9!important;background:#0c1a2c;border:1px solid #20354e;border-radius:999px;padding:8px 12px}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:16px}
+.card{background:#0b1727;border:1px solid #20344d;border-radius:16px;padding:18px}
+.card-title{font:700 11px "Space Grotesk";letter-spacing:.1em;color:#9eb0c4!important;text-transform:uppercase}
+.card-value{font:700 30px "Space Grotesk";margin-top:8px;color:#f4f8ff}
+.rowitem{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #172940}
+.rowitem:last-child{border-bottom:0}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px}
+.dot-cyan{background:#19d9ff}.dot-green{background:#36d48a}.dot-red{background:#ff6175}.dot-amber{background:#f5b942}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr}}
 </style>""", unsafe_allow_html=True)
 
 
@@ -312,120 +332,195 @@ def copilot_tab():
         st.rerun()
 
 
-def main():
+
+def set_page(page):
+    st.session_state.page = page
+
+
+def page_nav():
+    st.session_state.setdefault("page", "Dashboard")
+    with st.sidebar:
+        st.markdown('<div class="side-brand">Fin<b>◈</b>Sight</div>', unsafe_allow_html=True)
+        st.markdown('<div class="side-copy">Accounts-payable intelligence<br><span style="color:#36d48a">● ENGINE ONLINE</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="side-section">Workspace</div>', unsafe_allow_html=True)
+        items = [
+            ("Dashboard", "⌂ Dashboard"),
+            ("Exceptions", "⚠ Exceptions"),
+            ("Evidence", "◉ Evidence"),
+            ("Copilot", "✦ Copilot"),
+            ("Audit", "▤ Audit log"),
+        ]
+        for page, label in items:
+            if st.button(label, key="nav_" + page.lower(), width="stretch"):
+                set_page(page)
+                st.rerun()
+        st.markdown('<div class="side-section">System</div>', unsafe_allow_html=True)
+        if st.button("↻ New batch", key="nav_new", width="stretch"):
+            reset_workspace()
+            set_page("Dashboard")
+            st.rerun()
+        if st.button("↪ Log out", key="nav_logout", width="stretch"):
+            st.session_state["authenticated"] = False
+            st.rerun()
+        st.markdown('<div class="side-copy" style="margin-top:20px">Required CSV fields<br>invoice_id · vendor · amount<br>category · invoice_date</div>', unsafe_allow_html=True)
+
+
+def topbar():
     st.markdown(
-        '<div class="nav"><div class="logo">Fin<span>Sight</span> <small>/ AP INTELLIGENCE</small></div>'
-        '<div class="status">● RULE ENGINE ONLINE</div></div>',
+        '<div class="topline"><div class="crumb">FinSight / AP Intelligence / '
+        + st.session_state.get("page", "Dashboard")
+        + '</div><div class="userpill">● SYSTEM READY &nbsp; · &nbsp; AP CONTROL</div></div>',
         unsafe_allow_html=True,
     )
 
+
+def dashboard_page():
     if st.session_state.df is None:
         st.markdown(
-            '<div class="hero"><div class="kicker">INVOICE INTELLIGENCE</div>'
-            '<h1>Know every invoice.<br><span>Trust every decision.</span></h1>'
-            '<p>A focused workspace for invoice analysis, exceptions, evidence and human review. '
-            'The deterministic rule engine stays the source of truth.</p></div>',
+            '<div class="hero"><div class="kicker">ACCOUNTS PAYABLE · CONTROL CENTER</div>'
+            '<h1>Make every invoice<br><span>easy to trust.</span></h1>'
+            '<p>Upload a batch, run deterministic checks, then resolve exceptions with evidence and human review in one workspace.</p></div>',
             unsafe_allow_html=True,
         )
-
-        left, right = st.columns([1.55, 1])
+        left, right = st.columns([1.5, .8])
         with left:
-            st.markdown('<div class="panel-title">01 · Load data</div>', unsafe_allow_html=True)
-            st.markdown(
-                '<div class="panel"><h3>Upload your invoice CSV</h3>'
-                '<p class="muted">Required columns: invoice_id, vendor, amount, category, invoice_date.</p></div>',
-                unsafe_allow_html=True,
-            )
-            uploaded = st.file_uploader("Invoice CSV", type=["csv"], key="invoice_upload")
+            st.markdown('<div class="card"><div class="card-title">Invoice intake</div><h3>Load a new batch</h3><p class="muted">CSV only · required fields: invoice_id, vendor, amount, category, invoice_date</p>', unsafe_allow_html=True)
+            uploaded = st.file_uploader("Drop invoice CSV here", type=["csv"], key="invoice_upload")
+            st.markdown('</div>', unsafe_allow_html=True)
+            if uploaded is not None and uploaded.name != st.session_state.source_name:
+                try:
+                    reset_workspace(pd.read_csv(uploaded), uploaded.name)
+                    st.session_state.page = "Dashboard"
+                    st.rerun()
+                except Exception as exc:
+                    st.error(f"Could not read CSV: {exc}")
         with right:
-            st.markdown('<div class="panel-title">Quick start</div>', unsafe_allow_html=True)
-            st.markdown(
-                '<div class="panel"><h3>Test with sample data</h3>'
-                '<p class="muted">Load the bundled five-invoice dataset and run the complete workflow.</p></div>',
-                unsafe_allow_html=True,
-            )
-            if st.button("Load sample dataset", key="load_sample", type="primary", width="stretch"):
+            st.markdown('<div class="card"><div class="card-title">Quick start</div><h3>Demo batch</h3><p class="muted">Use the bundled dataset to test the complete FinSight workflow.</p>', unsafe_allow_html=True)
+            if st.button("Load sample batch", key="load_sample", type="primary", width="stretch"):
                 reset_workspace(load_sample(), "data/invoices.csv")
+                st.session_state.page = "Dashboard"
                 st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        if uploaded is not None and uploaded.name != st.session_state.source_name:
-            try:
-                reset_workspace(pd.read_csv(uploaded), uploaded.name)
-                st.rerun()
-            except Exception as exc:
-                st.error(f"Could not read CSV: {exc}")
-
-        st.markdown("### The workflow")
-        a, b, c = st.columns(3)
-        for col, title, body in [
-            (a, "01 · Analyze", "Deterministic rules produce each invoice decision."),
-            (b, "02 · Review", "Exceptions and uncertain cases go to a human."),
-            (c, "03 · Explain", "Evidence and rule IDs show exactly why a result happened."),
+        st.markdown("### Workflow")
+        a,b,c=st.columns(3)
+        for col,title,body,dot in [
+            (a,"Analyze","Deterministic rules inspect every invoice.","cyan"),
+            (b,"Resolve","Exceptions are routed to human review.","red"),
+            (c,"Explain","Evidence makes each decision traceable.","green"),
         ]:
             with col:
-                st.markdown(
-                    f'<div class="panel"><h4>{title}</h4><p class="muted">{body}</p></div>',
-                    unsafe_allow_html=True,
-                )
-        st.markdown('<div class="footer">FINSIGHT · RULES FIRST · HUMAN JUDGMENT</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="card"><span class="dot dot-{dot}"></span><b>{title}</b><p class="muted">{body}</p></div>',unsafe_allow_html=True)
         return
-
-    st.markdown(
-        f'<div class="hero"><div class="kicker">WORKSPACE · {st.session_state.source_name.upper()}</div>'
-        f'<h1>Ready to <span>analyze.</span></h1>'
-        f'<p>{len(st.session_state.df):,} invoice rows loaded. Run the deterministic engine, then review every decision from one screen.</p></div>',
-        unsafe_allow_html=True,
-    )
-
-    a, b, c = st.columns([4, 1.2, 1])
-    with a:
-        st.markdown(
-            f'<div class="panel"><b>{st.session_state.source_name}</b><br>'
-            f'<span class="muted">{len(st.session_state.df):,} rows · {len(st.session_state.df.columns)} columns</span></div>',
-            unsafe_allow_html=True,
-        )
-    with b:
-        if st.button("Analyze", key="analyze_btn", type="primary", width="stretch"):
-            run_analysis()
-            st.rerun()
-    with c:
-        if st.button("Reset", key="reset_workspace", width="stretch"):
-            reset_workspace()
-            st.rerun()
-
-    with st.expander("Preview uploaded data"):
-        st.dataframe(st.session_state.df.head(100), width="stretch", hide_index=True)
 
     if not st.session_state.analyzed:
-        st.info("Ready. Click Analyze to generate invoice decisions.")
-        st.markdown('<div class="footer">FINSIGHT · READY</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="hero"><div class="kicker">BATCH READY</div><h1>{st.session_state.source_name}<br><span>{len(st.session_state.df):,} invoices loaded.</span></h1>'
+            '<p>Preview the source and run the deterministic engine when you are ready.</p></div>',
+            unsafe_allow_html=True,
+        )
+        a,b,c=st.columns([4,1.1,1])
+        with a:
+            st.markdown(f'<div class="card"><div class="card-title">Current batch</div><div class="card-value">{len(st.session_state.df):,}</div><span class="muted">invoice rows · {len(st.session_state.df.columns)} columns</span></div>',unsafe_allow_html=True)
+        with b:
+            if st.button("Analyze",key="analyze_btn",type="primary",width="stretch"):
+                run_analysis(); st.rerun()
+        with c:
+            if st.button("Reset",key="reset_workspace",width="stretch"):
+                reset_workspace(); st.rerun()
+        with st.expander("Preview source CSV"):
+            st.dataframe(st.session_state.df.head(100),width="stretch",hide_index=True)
         return
 
-    st.markdown("### Results")
-    tabs = st.tabs(["Decisions", "Review", "Evidence", "Copilot"])
-    with tabs[0]:
-        render_results()
-    with tabs[1]:
-        review_tab()
-    with tabs[2]:
-        evidence_tab()
-    with tabs[3]:
-        copilot_tab()
-
-    with st.expander("Session audit & system status"):
-        if st.session_state.audit:
-            st.dataframe(pd.DataFrame(st.session_state.audit), width="stretch", hide_index=True)
-        else:
-            st.info("No audit events yet.")
-        st.caption("Required schema")
-        st.code(", ".join(REQUIRED_COLUMNS))
-        st.caption("Configured category limits")
-        st.write(CATEGORY_LIMITS)
-
+    results=st.session_state.results
+    summary=summarize_results(results)
+    avg=sum(float(r.get("confidence",0)) for r in results)/len(results) if results else 0
     st.markdown(
-        '<div class="footer">FINSIGHT · DETERMINISTIC ENGINE IS THE SOURCE OF TRUTH · AI EXPLAINS, NEVER DECIDES</div>',
+        '<div class="hero"><div class="kicker">CONTROL CENTER · ANALYSIS COMPLETE</div>'
+        '<h1>Make sense of<br><span>every decision.</span></h1>'
+        '<p>Latest batch: '+str(st.session_state.source_name)+' · '+str(summary["total"])+' invoices analyzed.</p></div>',
         unsafe_allow_html=True,
     )
+    metrics(results)
+    st.markdown('<div class="dash-grid">',unsafe_allow_html=True)
+    st.markdown(
+        '<div class="card"><div class="card-title">Recent decisions</div>',
+        unsafe_allow_html=True,
+    )
+    out=build_results_df(results)
+    for _,row in out.head(5).iterrows():
+        status=str(row["status"])
+        dot="green" if status=="CLEAN" else "red"
+        st.markdown(
+            f'<div class="rowitem"><div><span class="dot dot-{dot}"></span><b>{row["invoice_id"]}</b><br><span class="muted">{row["vendor"]} · {row["category"]}</span></div>'
+            f'<div><b>{status}</b><br><span class="muted">{float(row["confidence"]):.0%} confidence</span></div></div>',
+            unsafe_allow_html=True,
+        )
+    st.markdown('</div>',unsafe_allow_html=True)
+    st.markdown(
+        f'<div><div class="card"><div class="card-title">Today’s AP note</div><h3>{summary["exceptions"]} exceptions</h3>'
+        f'<p class="muted">{summary["review_required"]} invoices are routed to human review. Review decisions remain separate from the rule engine.</p></div>'
+        f'<div style="height:16px"></div><div class="card"><div class="card-title">My files</div><h3>{st.session_state.source_name}</h3>'
+        f'<p class="muted">{len(st.session_state.df):,} rows · analyzed just now</p></div></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown('</div>',unsafe_allow_html=True)
+    st.markdown("### Analysis workspace")
+    tabs=st.tabs(["Decisions","Review","Evidence","Copilot"])
+    with tabs[0]: render_results()
+    with tabs[1]: review_tab()
+    with tabs[2]: evidence_tab()
+    with tabs[3]: copilot_tab()
+
+
+def exceptions_page():
+    st.markdown('<div class="hero"><div class="kicker">HUMAN REVIEW</div><h1>Resolve the<br><span>exception queue.</span></h1><p>Every flagged invoice is shown with its reason and evidence before a human decision.</p></div>',unsafe_allow_html=True)
+    if not st.session_state.analyzed:
+        st.info("Analyze an invoice batch first.")
+        return
+    review_tab()
+
+
+def evidence_page():
+    st.markdown('<div class="hero"><div class="kicker">TRACEABILITY</div><h1>See the<br><span>evidence.</span></h1><p>Inspect the exact rule IDs, trusted record fields and matched invoice evidence behind each decision.</p></div>',unsafe_allow_html=True)
+    if not st.session_state.analyzed:
+        st.info("Analyze an invoice batch first.")
+        return
+    evidence_tab()
+
+
+def copilot_page():
+    st.markdown('<div class="hero"><div class="kicker">FIN·LLM COPILOT</div><h1>Ask about<br><span>your AP data.</span></h1><p>Copilot answers FinSight-scoped questions and cites the available workflow context.</p></div>',unsafe_allow_html=True)
+    if not st.session_state.analyzed:
+        st.info("Analyze a batch first for invoice-specific answers.")
+    copilot_tab()
+
+
+def audit_page():
+    st.markdown('<div class="hero"><div class="kicker">AUDIT TRAIL</div><h1>Every action<br><span>has a record.</span></h1><p>Analysis and human-review actions are captured for traceability.</p></div>',unsafe_allow_html=True)
+    if st.session_state.audit:
+        st.dataframe(pd.DataFrame(st.session_state.audit),width="stretch",hide_index=True)
+    else:
+        st.info("No audit events yet.")
+    with st.expander("Engine configuration"):
+        st.write({"required_columns": REQUIRED_COLUMNS, "category_limits": CATEGORY_LIMITS})
+
+
+def main():
+    page_nav()
+    topbar()
+    page = st.session_state.get("page", "Dashboard")
+    if page == "Dashboard":
+        dashboard_page()
+    elif page == "Exceptions":
+        exceptions_page()
+    elif page == "Evidence":
+        evidence_page()
+    elif page == "Copilot":
+        copilot_page()
+    elif page == "Audit":
+        audit_page()
+    st.markdown('<div class="footer">FINSIGHT · DETERMINISTIC ENGINE IS THE SOURCE OF TRUTH · AI EXPLAINS, NEVER DECIDES</div>', unsafe_allow_html=True)
 
 
 init_state()
