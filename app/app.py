@@ -120,6 +120,9 @@ def build_results_df(results):
             "rule_ids": ", ".join(r.get("rule_ids") or []),
             "reasons": " | ".join(str(x.get("message", "")) for x in r.get("reasons", [])),
             "matched_invoice_id": (r.get("evidence") or {}).get("matched_invoice_id"),
+            "dl_status": r.get("dl_status", "UNAVAILABLE"),
+            "dl_anomaly_score": float(r.get("dl_anomaly_score", 0)),
+            "dl_reconstruction_error": float(r.get("dl_reconstruction_error", 0)),
         }
         for r in results
     ])
@@ -176,8 +179,13 @@ def render_results():
     metrics(results)
     out = build_results_df(results)
     st.markdown("### Decision results")
+    dl_available = sum(bool(r.get("dl_available")) for r in results)
+    if dl_available:
+        st.info(f"Deep-learning anomaly detector active · {dl_available} invoice(s) scored. Neural scores are advisory and never override policy rules.")
+    else:
+        st.caption("Deep-learning detector is unavailable for this batch; deterministic rules remain the source of truth.")
     st.dataframe(
-        out[["invoice_id","vendor","amount","category","status","route","confidence","human_review_required"]],
+        out[["invoice_id","vendor","amount","category","status","route","confidence","human_review_required","dl_status","dl_anomaly_score"]],
         width="stretch",
         hide_index=True,
         column_config={
@@ -281,6 +289,12 @@ def evidence_tab():
                 st.write("Expected:", reason.get("expected_value"))
                 if reason.get("matched_invoice_id"):
                     st.write("Matched invoice:", reason.get("matched_invoice_id"))
+    st.markdown("### Deep-learning signal")
+    if result.get("dl_available"):
+        st.metric("Anomaly score", f"{float(result.get("dl_anomaly_score", 0)):.0%}")
+        st.caption(str(result.get("dl_reason", "")))
+    else:
+        st.caption(str(result.get("dl_reason", "Detector unavailable.")))
     st.markdown("### Trusted evidence")
     st.json(result.get("evidence") or {})
 
@@ -343,7 +357,7 @@ def main():
     st.markdown(
         '<div class="hero"><div class="eyebrow">INVOICE CONTROL · EVIDENCE · HUMAN REVIEW</div>'
         '<h1>Analyze every invoice.<br><span>See every decision.</span></h1>'
-        '<p>Upload a CSV, run the deterministic rule engine, inspect the exact evidence behind each result, and send uncertain cases to human review.</p></div>',
+        '<p>Upload a CSV, run deterministic policy checks plus a neural anomaly detector, inspect the evidence behind each result, and send uncertain cases to human review.</p></div>',
         unsafe_allow_html=True,
     )
 
@@ -446,7 +460,7 @@ def main():
         except Exception as exc:
             st.write({"Gemini": "Not connected", "message": str(exc)})
 
-    st.markdown('<div class="footer">FINSIGHT · PYTHON RULE ENGINE IS THE SOURCE OF TRUTH · AI EXPLAINS, NEVER DECIDES</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">FINSIGHT · RULES + NEURAL ANOMALY SIGNAL · HUMAN JUDGMENT</div>', unsafe_allow_html=True)
 
 
 main()
