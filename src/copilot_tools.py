@@ -59,7 +59,11 @@ def _heuristic_plan(question: str) -> dict[str, Any]:
             group_by = candidate
             break
     if output == "chart" and group_by is None:
-        group_by = "category" if "category" in q else "status"
+        if operation == "exceptions":
+            # Graph exception reasons instead of falling back to a plain list.
+            group_by = "reasons"
+        else:
+            group_by = "category" if "category" in q else "status"
 
     columns = []
     aliases = {
@@ -240,7 +244,9 @@ def copilot_command(question: str, results: list[dict[str, Any]] | None) -> dict
     plan = plan_with_gemini(question, results) or heuristic
     plan["_question"] = question
     if heuristic["output"] in {"table", "chart"}:
-        if not plan.get("output") or plan.get("output") == "answer":
+        # Explicit user requests for charts/tables take precedence over an
+        # ambiguous Gemini presentation choice.
+        if heuristic["output"] == "chart" or not plan.get("output") or plan.get("output") == "answer":
             plan.update(heuristic)
     result = execute_plan(plan, results)
     result["mode"] = "ai_plan" if plan is not heuristic else "local_plan"
