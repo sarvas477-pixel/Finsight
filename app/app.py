@@ -132,23 +132,64 @@ def evidence_tab():
     st.markdown("### Trusted evidence"); st.json(r.get("evidence") or {})
 
 def copilot_tab():
-    st.markdown("Ask FinSight about the loaded analysis. The assistant is intentionally limited to FinSight/AP/invoice/audit/application questions.")
-    if not st.session_state.results: st.info("Analyze the CSV first for invoice-specific Copilot answers.")
-    prompts=["Summarize this batch","Which invoices need review?","Explain every exception","Why is INV003 flagged?"]
+    st.markdown("Ask FinSight naturally. The Copilot can query the analyzed dataset and choose the right response format: answer, table, or chart.")
+    if not st.session_state.results:
+        st.info("Analyze the CSV first so Copilot can work with the real invoice data.")
+
+    prompts=[
+        "Show all results in a table",
+        "Give me a graph of exceptions by category",
+        "Which invoices need human review?",
+        "Summarize this batch",
+    ]
     cols=st.columns(4)
     for col,prompt in zip(cols,prompts):
         with col:
             if st.button(prompt,key="quick_"+prompt,width="stretch"):
-                from src.copilot_workflow import copilot_workflow
-                st.session_state.chat.append(("user",prompt)); response=copilot_workflow(prompt,st.session_state.results,st.session_state.chat[:-1])
-                st.session_state.chat.append(("assistant",response["answer"],response["mode"])); st.rerun()
+                _run_copilot_command(prompt)
+
     for item in st.session_state.chat:
-        with st.chat_message(item[0]): st.markdown(item[1]); st.caption(f"Source: {item[2]}" if len(item)>2 else "")
-    question=st.chat_input("Ask FinSight…")
+        role=item.get("role") if isinstance(item,dict) else item[0]
+        message=item.get("content") if isinstance(item,dict) else item[1]
+        with st.chat_message(role):
+            st.markdown(message)
+            artifact=item.get("artifact") if isinstance(item,dict) else None
+            if artifact:
+                _render_copilot_artifact(artifact)
+            if isinstance(item,dict) and item.get("mode"):
+                st.caption(f"Copilot mode: {item['mode']}")
+
+    question=st.chat_input("Try: show all results in a table · graph exceptions by category · total spend by vendor")
     if question:
-        from src.copilot_workflow import copilot_workflow
-        st.session_state.chat.append(("user",question)); response=copilot_workflow(question,st.session_state.results,st.session_state.chat[:-1])
-        st.session_state.chat.append(("assistant",response["answer"],response["mode"])); st.rerun()
+        _run_copilot_command(question)
+
+def _render_copilot_artifact(artifact):
+    if not artifact:
+        return
+    data=artifact.get("data")
+    if data is None:
+        return
+    if not isinstance(data,pd.DataFrame):
+        data=pd.DataFrame(data)
+    if artifact.get("output")=="chart":
+        st.bar_chart(data, x=artifact.get("x"), y=artifact.get("y"))
+    else:
+        st.dataframe(data,width="stretch",hide_index=True)
+
+def _run_copilot_command(question):
+    from src.copilot_tools import copilot_command
+    st.session_state.chat.append({"role":"user","content":question})
+    result=copilot_command(question,st.session_state.results)
+    artifact={k:v for k,v in result.items() if k in {"output","title","x","y"}}
+    if "data" in result:
+        artifact["data"]=result["data"]
+    st.session_state.chat.append({
+        "role":"assistant",
+        "content":result.get("answer","") ,
+        "artifact":artifact if "data" in result else None,
+        "mode":result.get("mode","copilot"),
+    })
+    st.rerun()
 
 def main():
     init_state()
