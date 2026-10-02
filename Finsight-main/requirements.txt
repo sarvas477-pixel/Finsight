@@ -3,4 +3,5 @@ streamlit>=1.40,<2
 google-genai>=1.0,<2
 python-dotenv>=1.0,<2
 supabase>=2.0,<3
+torch>=2.4,<3
 pytest>=8,<10
