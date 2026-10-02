@@ -118,8 +118,7 @@ def ask_gemini(question, results, conversation=None):
     if not question: return "Please enter a question.","validation"
     direct=deterministic_answer(question,results)
     if direct: return direct,"deterministic"
-    if not _invoice_question(question): return SCOPE_MESSAGE,"scope_guard"
-    api_key=_secret("GEMINI_API_KEY")
+    # Copilot is open-ended over the current workspace; do not keyword-block questions.\n    # Gemini is still grounded by the trusted rule-engine data and system prompt.\n    api_key=_secret("GEMINI_API_KEY")
     if not api_key: return template_chat(question,results),"template_fallback"
     try:
         from google import genai
