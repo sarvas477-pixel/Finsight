@@ -184,9 +184,11 @@ def _run_copilot_command(question):
     artifact={k:v for k,v in result.items() if k in {"output","title","x","y"}}
     if "data" in result:
         artifact["data"]=result["data"]
+    answer=result.get("answer","")
     st.session_state.chat.append({
         "role":"assistant",
-        "content":result.get("answer","") ,
+        "content":answer,
+        1:answer,
         "artifact":artifact if "data" in result else None,
         "mode":result.get("mode","copilot"),
     })
