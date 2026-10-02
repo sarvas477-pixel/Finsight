@@ -5,7 +5,7 @@ from typing import Any
 from dotenv import load_dotenv
 load_dotenv()
 
-DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
 SCOPE_MESSAGE = ("I cannot help with that request. I'm FinSight Copilot, focused on FinSight "
                  "invoice, accounts-payable, expense-checking, exception-review, audit, "
                  "CSV-analysis, rule-engine, and application-usage questions.")
