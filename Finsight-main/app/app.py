@@ -53,7 +53,7 @@ def build_results_df(results):
     return pd.DataFrame([{"invoice_id":r.get("invoice_id"),"vendor":(r.get("evidence") or {}).get("vendor"),
         "amount":(r.get("evidence") or {}).get("amount"),"category":(r.get("evidence") or {}).get("category"),
         "invoice_date":(r.get("evidence") or {}).get("invoice_date"),"status":r.get("status"),"route":r.get("route"),
-        "confidence":float(r.get("confidence",0)),"human_review_required":bool(r.get("human_review_required")),
+        "confidence":float(r.get("confidence",0)),"dl_anomaly_score":r.get("dl_anomaly_score"),"dl_anomaly_flag":bool(r.get("dl_anomaly_flag",False)),"ai_risk_score":float(r.get("ai_risk_score",0)),"human_review_required":bool(r.get("human_review_required")),
         "rule_ids":", ".join(r.get("rule_ids") or []),"reasons":" | ".join(str(x.get("message","")) for x in r.get("reasons",[])),
         "matched_invoice_id":(r.get("evidence") or {}).get("matched_invoice_id")} for r in results])
 
@@ -89,7 +89,7 @@ def render_results():
     with b: query=st.text_input("Search",key="result_search",placeholder="Search invoice, vendor, rule…",label_visibility="collapsed")
     shown=filter_results(out,query,view)
     st.caption(f"Showing {len(shown)} of {len(out)} invoices")
-    st.dataframe(shown[["invoice_id","vendor","amount","category","status","route","confidence","reviewer_decision"]],width="stretch",hide_index=True)
+    st.dataframe(shown[["invoice_id","vendor","amount","category","status","route","confidence","dl_anomaly_score","ai_risk_score","reviewer_decision"]],width="stretch",hide_index=True)
     exceptions=out[out.status=="EXCEPTION"].copy()
     if not exceptions.empty:
         st.markdown("### Exceptions"); st.dataframe(exceptions[["invoice_id","vendor","amount","category","rule_ids","reasons","route"]],width="stretch",hide_index=True)
@@ -106,7 +106,7 @@ def review_tab():
         iid=str(r.get("invoice_id")); old=st.session_state.reviews.get(iid,{})
         with st.container(border=True):
             st.markdown(f"#### {iid}"); st.write(" ".join(str(x.get("message","")) for x in r.get("reasons",[])))
-            st.caption(f"Route: {r.get('route')} · Confidence: {float(r.get('confidence',0)):.0%}")
+            st.caption(f"Route: {r.get('route')} · Rule confidence: {float(r.get('confidence',0)):.0%} · DL anomaly: {float(r.get('dl_anomaly_score') or 0):.0%}")
             with st.expander("Evidence"): st.json({"evidence":r.get("evidence"),"rule_ids":r.get("rule_ids"),"reasons":r.get("reasons")})
             note=st.text_area("Reviewer note",value=old.get("comment",""),key=f"review_note_{iid}")
             a,b=st.columns(2)
@@ -122,7 +122,7 @@ def evidence_tab():
     selected=st.selectbox("Select invoice",ids,key="evidence_invoice")
     r=next(x for x in st.session_state.results if str(x.get("invoice_id"))==selected)
     st.markdown(f'<span class="badge">● {r.get("status")}</span> <span class="badge">{r.get("route")}</span>',unsafe_allow_html=True)
-    a,b,c=st.columns(3); a.metric("Confidence",f"{float(r.get('confidence',0)):.0%}"); b.metric("Rule flags",len(r.get("rule_ids") or [])); c.metric("Human review","Required" if r.get("human_review_required") else "Not required")
+    a,b,c,d=st.columns(4); a.metric("Rule confidence",f"{float(r.get('confidence',0)):.0%}"); b.metric("DL anomaly",f"{float(r.get('dl_anomaly_score') or 0):.0%}"); c.metric("Hybrid risk",f"{float(r.get('ai_risk_score') or 0):.0%}"); d.metric("Human review","Required" if r.get("human_review_required") else "Not required")
     st.markdown("### Why this happened")
     if not r.get("reasons"): st.success("No rule violations. This invoice passed all configured checks.")
     for reason in r.get("reasons",[]):
