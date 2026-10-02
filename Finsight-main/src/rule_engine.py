@@ -89,7 +89,7 @@ def process_invoices(df: pd.DataFrame) -> list[dict]:
                                 "message":"Possible duplicate: vendor, amount, and invoice date match another invoice.",
                                 "actual_value":{"vendor":values["vendor"],"amount":amount,"invoice_date":date},
                                 "expected_value":"No invoice with the same vendor, amount, and date.",
-                                "matched_invoice_id":old.get("invoice_id"),"matched_invoice_ids":[old.get("invoice_id")],
+                                "matched_invoice_id":old.get("invoice_id"),"matched_invoice_ids":[old.get("invoice_id"]),
                                 "human_review_required":True})
                 break
         previous.append({**values,"amount":amount,"invoice_date":date})
@@ -110,6 +110,39 @@ def process_invoices(df: pd.DataFrame) -> list[dict]:
         results.append({"invoice_id":values["invoice_id"],"status":status,"route":route,
                         "confidence":confidence,"human_review_required":review,
                         "rule_ids":rule_ids,"reasons":reasons,"evidence":evidence})
+
+    # Deep learning is an additional signal, not a replacement for policy rules.
+    # A PyTorch autoencoder learns unusual invoice patterns and can route them to review.
+    try:
+        from src.deep_learning import analyze_with_deep_learning
+        dl = analyze_with_deep_learning(df)
+    except Exception as exc:
+        dl = {"available":False,"reason":f"Deep learning unavailable: {exc}",
+              "scores":[None]*len(results),"flags":[False]*len(results),"model":"PyTorch Invoice Autoencoder","epochs":0}
+
+    for index, result in enumerate(results):
+        score = dl["scores"][index] if index < len(dl["scores"]) else None
+        flagged = bool(dl["flags"][index]) if index < len(dl["flags"]) else False
+        result["dl_anomaly_score"] = score
+        result["dl_anomaly_flag"] = flagged
+        result["ai_risk_score"] = round(max(
+            float(result.get("confidence", 1.0) if result.get("status") == "EXCEPTION" else 0.0),
+            float(score or 0.0)
+        ), 4)
+        if flagged:
+            result["rule_ids"].append("DL_ANOMALY")
+            result["reasons"].append({
+                "rule":"DL_ANOMALY",
+                "message":f"Deep-learning model detected an unusual invoice pattern (anomaly score {float(score):.0%}).",
+                "actual_value":float(score),
+                "expected_value":"Anomaly score below 85%.",
+                "human_review_required":True,
+            })
+            result["human_review_required"] = True
+            result["route"] = "HUMAN_REVIEW"
+        result["dl_model"] = dl["model"]
+        result["dl_available"] = dl["available"]
+
     return results
 
 def summarize_results(results):
