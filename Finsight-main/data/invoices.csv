@@ -1,0 +1,6 @@
+invoice_id,vendor,amount,category,invoice_date
+INV001,ABC Suppliers,4500,Travel,2026-09-14
+INV002,XYZ Technologies,15000,Equipment,2026-09-14
+INV003,ABC Suppliers,4500,Travel,2026-09-14
+INV004,Office Mart,800,Office,2026-09-14
+INV005,,1200,Travel,2026-09-14
