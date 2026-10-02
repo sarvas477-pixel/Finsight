@@ -22,7 +22,7 @@ def test_supabase_connection():
     try:
         client = _client()
         if client is None: return False, "SUPABASE_URL / SUPABASE_KEY are not configured."
-        client.table("audit_events").select("id").limit(1).execute()
+        client.table("audit_events").select("created_at").limit(1).execute()
         return True, "Supabase audit_events is reachable."
     except Exception as exc:
         return False, f"{type(exc).__name__}: {exc}"
