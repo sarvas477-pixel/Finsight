@@ -1,120 +1,52 @@
 # FinSight — AI Accounts-Payable Exception Assistant
 
-FinSight is a modern AP operations workspace that combines deterministic invoice controls, evidence, human review, and an evidence-grounded AI copilot.
+FinSight is an evidence-first invoice/AP workspace. The Python rule engine is the source of truth; the AI Copilot explains trusted results but never changes invoice decisions.
 
-## What is implemented
+## Included in this release
 
 - Required-field, amount, date, category-limit and duplicate validation
-- Deterministic `AUTO_PASS`, `EXCEPTION`, and `HUMAN_REVIEW` routing
-- Evidence and confidence metadata for every result
-- Modern Streamlit command center with responsive cards, hover motion, animated transitions, accessible focus states, and a chatbot-first AI Copilot
-- Reviewer approve/reject workflow with comments
-- Session audit trail and optional Supabase persistence
-- Gemini-powered natural-language explanations grounded only in trusted rule-engine results
-- CSV results and JSON audit exports
-- Automated tests
-- Streamlit Community Cloud entrypoint: `streamlit_app.py`
+- CLEAN / EXCEPTION status plus AUTO_PASS / HUMAN_REVIEW routing
+- Confidence, rule IDs, evidence and matched-record context
+- Dark Cybernetic Audit Control Streamlit frontend
+- CSV upload plus bundled sample dataset
+- Queue filters: All / Auto-pass / Exceptions / Human review
+- Literal, case-insensitive result search
+- Reviewer approve/reject actions with comments
+- Evidence inspector for each invoice
+- CSV exports for analyzed results, exceptions and original data
+- Session audit trail and batched Supabase audit persistence
+- Persisted audit-log viewer
+- FinSight Copilot with deterministic answers first and optional Gemini grounding
+- Scope guard for unrelated questions
+- Live Gemini and Supabase connection checks
+- Automated rule-engine, reporting, persistence and frontend smoke tests
+- Streamlit Community Cloud entrypoint
 
-## Run locally on Windows
+## Local run
 
-```powershell
+~~~powershell
 py -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\\.venv\\Scripts\\python.exe -m pip install -r requirements.txt
 copy .env.example .env
-.\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m streamlit run streamlit_app.py
-```
+.\\.venv\\Scripts\\python.exe -m pytest -q
+.\\.venv\\Scripts\\python.exe -m streamlit run streamlit_app.py
+~~~
 
-If PowerShell blocks activation, activation is not required.
+Activation is optional on Windows; invoking the venv Python directly also works.
 
-## Gemini connection
+## Environment
 
-FinSight reads these values from either environment variables or Streamlit Secrets:
-
-```env
+~~~env
 GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-2.5-flash
-```
-
-The AI Copilot uses deterministic answers for common AP questions first. For broader questions, Gemini receives only the trusted invoice-analysis payload. Gemini never becomes the source of truth for invoice decisions.
-
-The sidebar's **Check connections** action performs a live Gemini test.
-
-## Supabase connection
-
-Create the `audit_events` table with:
-
-```text
-supabase_schema.sql
-```
-
-Configure:
-
-```env
+GEMINI_MODEL=gemini-3.6-flash
 SUPABASE_URL=your_supabase_project_url
 SUPABASE_KEY=your_supabase_key
-```
+~~~
 
-FinSight uses Supabase for best-effort audit persistence. The local/session workflow remains usable if Supabase is unavailable.
-
-The sidebar's **Check connections** action tests access to the `audit_events` table.
-
-## Deploy on Streamlit Community Cloud
-
-1. Push this repository to GitHub.
-2. Open Streamlit Community Cloud and create an app.
-3. Select repository `sarvas477-pixel/Finsight`.
-4. Set the branch to `main`.
-5. Set the main file to `streamlit_app.py`.
-6. Open **Advanced settings → Secrets**.
-7. Paste:
-
-```toml
-GEMINI_API_KEY = "your_gemini_api_key"
-GEMINI_MODEL = "gemini-2.5-flash"
-
-SUPABASE_URL = "https://your-project.supabase.co"
-SUPABASE_KEY = "your_supabase_key"
-```
-
-8. Deploy, open the app, load the sample CSV, click **Analyze**, then use **AI Copilot**.
-9. Open the sidebar and click **Check connections** to verify Gemini and Supabase.
-
-Do **not** commit `.env` or `.streamlit/secrets.toml` to GitHub.
-
-## CSV format
-
-```csv
-invoice_id,vendor,amount,category,invoice_date
-```
-
-Configured limits live in `src/config.py`.
+Never commit real credentials. supabase_schema.sql contains the audit table definition.
 
 ## Architecture
 
-```
-CSV
- ↓
-Deterministic Rule Engine
- ↓
-Trusted Evidence + Route
- ├── AUTO_PASS
- ├── EXCEPTION
- └── HUMAN_REVIEW
-          ↓
-     FinSight Copilot
-          ↓
-   Gemini (optional)
-          ↓
-     Audit / Export
-```
+CSV -> deterministic Python rule engine -> evidence/routing -> human review + audit persistence -> Copilot explanation
 
-The deterministic rule engine remains the source of truth. The LLM explains trusted results rather than silently changing them.
-
-## Release gate
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-```
-
-See `docs.md` and `DAY20_COMPLETION.md` for the project and demo checklist.
+Gemini is optional. If it is unavailable, deterministic FinSight responses and invoice analysis continue to work.
