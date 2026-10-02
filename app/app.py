@@ -141,8 +141,9 @@ def copilot_tab():
         "Give me a graph of exceptions by category",
         "Which invoices need human review?",
         "Summarize this batch",
+        "Why is INV003 flagged?",
     ]
-    cols=st.columns(4)
+    cols=st.columns(5)
     for col,prompt in zip(cols,prompts):
         with col:
             if st.button(prompt,key="quick_"+prompt,width="stretch"):
