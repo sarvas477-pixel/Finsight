@@ -72,15 +72,18 @@ def _heuristic_plan(question: str) -> dict[str, Any]:
         if phrase in q and col not in columns:
             columns.append(col)
 
+    aggregation = "sum" if any(x in q for x in ("total spend", "total amount", "sum", "spend")) else ("average" if "average" in q else "count")
     return {
         "output": output,
         "operation": operation,
         "group_by": group_by,
+        "aggregation": aggregation,
         "columns": columns,
         "sort_by": None,
         "descending": True,
         "limit": 500,
         "title": "FinSight results",
+        "aggregation": "count",
     }
 
 
@@ -109,8 +112,9 @@ def plan_with_gemini(question: str, results: list[dict[str, Any]] | None) -> dic
                 "descending": {"type": "boolean"},
                 "limit": {"type": "integer", "minimum": 1, "maximum": 500},
                 "title": {"type": "string"},
+                "aggregation": {"type": "string", "enum": ["count", "sum", "average", "min", "max"]},
             },
-            "required": ["output", "operation", "group_by", "columns", "sort_by", "descending", "limit", "title"],
+            "required": ["output", "operation", "group_by", "columns", "sort_by", "descending", "limit", "title", "aggregation"],
         }
         sample = results_frame(results).head(30).to_dict(orient="records")
         prompt = f"""You are the command planner inside FinSight.
@@ -154,9 +158,11 @@ def execute_plan(plan: dict[str, Any], results: list[dict[str, Any]] | None) -> 
 
     if group_by and group_by in df.columns:
         if output == "chart":
-            metric = "amount" if "amount" in df.columns else "invoice_id"
-            if metric == "amount":
+            aggregation = plan.get("aggregation", "count")
+            if aggregation == "sum" and "amount" in df.columns:
                 chart = df.groupby(group_by, dropna=False)["amount"].sum().sort_values(ascending=False).to_frame("total_amount")
+            elif aggregation == "average" and "amount" in df.columns:
+                chart = df.groupby(group_by, dropna=False)["amount"].mean().sort_values(ascending=False).to_frame("average_amount")
             else:
                 chart = df.groupby(group_by, dropna=False).size().sort_values(ascending=False).to_frame("invoice_count")
             return {
@@ -167,7 +173,13 @@ def execute_plan(plan: dict[str, Any], results: list[dict[str, Any]] | None) -> 
                 "y": chart.columns[0],
                 "answer": f"Here is the requested breakdown by {group_by}.",
             }
-        grouped = df.groupby(group_by, dropna=False).size().reset_index(name="invoice_count")
+        aggregation = plan.get("aggregation", "count")
+        if aggregation == "sum" and "amount" in df.columns:
+            grouped = df.groupby(group_by, dropna=False)["amount"].sum().reset_index(name="total_amount")
+        elif aggregation == "average" and "amount" in df.columns:
+            grouped = df.groupby(group_by, dropna=False)["amount"].mean().reset_index(name="average_amount")
+        else:
+            grouped = df.groupby(group_by, dropna=False).size().reset_index(name="invoice_count")
         return {"output": "table", "title": plan.get("title") or f"Results by {group_by}", "data": grouped}
 
     columns = [c for c in plan.get("columns", []) if c in df.columns]
