@@ -72,7 +72,13 @@ def _heuristic_plan(question: str) -> dict[str, Any]:
         if phrase in q and col not in columns:
             columns.append(col)
 
-    aggregation = "sum" if any(x in q for x in ("total spend", "total amount", "sum", "spend")) else ("average" if "average" in q else "count")
+    if any(x in q for x in ("total spend", "total amount", "sum", "spend")):
+        aggregation = "sum"
+    elif "average" in q:
+        aggregation = "average"
+    else:
+        aggregation = "count"
+
     return {
         "output": output,
         "operation": operation,
@@ -83,7 +89,6 @@ def _heuristic_plan(question: str) -> dict[str, Any]:
         "descending": True,
         "limit": 500,
         "title": "FinSight results",
-        "aggregation": "count",
     }
 
 
@@ -182,21 +187,27 @@ def execute_plan(plan: dict[str, Any], results: list[dict[str, Any]] | None) -> 
             grouped = df.groupby(group_by, dropna=False).size().reset_index(name="invoice_count")
         return {"output": "table", "title": plan.get("title") or f"Results by {group_by}", "data": grouped}
 
-    # Answer invoice-specific evidence questions from the rule-engine results.
     question = str(plan.get("_question", "")).strip()
-    invoice_match = re.search(r"\\bINV[-_ ]?\\d+\\b", question, flags=re.IGNORECASE)
+    invoice_match = re.search(r"\bINV[-_ ]?\d+\b", question, flags=re.IGNORECASE)
     if plan.get("output") == "answer" and invoice_match:
         requested_id = invoice_match.group(0).replace(" ", "").replace("_", "").upper()
         match = next((r for r in results or [] if str(r.get("invoice_id", "")).upper() == requested_id), None)
         if match:
             reasons = match.get("reasons") or []
-            details = "; ".join(str(x.get("message", "")).strip() for x in reasons if str(x.get("message", "")).strip())
+            details = "; ".join(
+                str(x.get("message", "")).strip()
+                for x in reasons
+                if str(x.get("message", "")).strip()
+            )
+            status = match.get("status", "UNKNOWN")
+            route = match.get("route", "UNKNOWN")
             if details:
-                answer = f"{requested_id} is flagged as {match.get("status", "UNKNOWN")} and routed to {match.get("route", "UNKNOWN")}. Reason: {details}"
+                answer = f"{requested_id} is flagged as {status} and routed to {route}. Reason: {details}"
             else:
-                answer = f"{requested_id} has no rule violations and is marked {match.get("status", "CLEAN")}."
+                answer = f"{requested_id} has no rule violations and is marked {status}."
             return {"output": "answer", "title": f"Why {requested_id} was flagged", "answer": answer}
         return {"output": "answer", "title": "Invoice not found", "answer": f"I could not find {requested_id} in the analyzed FinSight dataset."}
+
     columns = [c for c in plan.get("columns", []) if c in df.columns]
     if not columns:
         columns = list(df.columns)
@@ -216,15 +227,18 @@ def execute_plan(plan: dict[str, Any], results: list[dict[str, Any]] | None) -> 
         counts = out["status"].value_counts().to_frame("invoice_count") if "status" in out.columns else pd.DataFrame()
         return {"output": "chart", "title": plan.get("title") or "FinSight chart", "data": counts, "answer": "Here is the requested chart."}
 
-    return {"output": "table", "title": plan.get("title") or "FinSight results", "data": out,
-            "answer": f"Showing {len(out)} result(s) from the analyzed FinSight dataset."}
+    return {
+        "output": "table",
+        "title": plan.get("title") or "FinSight results",
+        "data": out,
+        "answer": f"Showing {len(out)} result(s) from the analyzed FinSight dataset.",
+    }
 
 
 def copilot_command(question: str, results: list[dict[str, Any]] | None) -> dict[str, Any]:
     heuristic = _heuristic_plan(question)
     plan = plan_with_gemini(question, results) or heuristic
     plan["_question"] = question
-    # Deterministic presentation requests must always work, even without Gemini.
     if heuristic["output"] in {"table", "chart"}:
         if not plan.get("output") or plan.get("output") == "answer":
             plan.update(heuristic)
