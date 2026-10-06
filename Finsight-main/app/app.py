@@ -5,12 +5,20 @@ import sys
 import pandas as pd
 import streamlit as st
 
-ROOT=Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
+ROOT = Path(__file__).resolve().parents[1]
+for candidate in (ROOT, ROOT.parent):
+    candidate_str = str(candidate)
+    if candidate_str not in sys.path:
+        sys.path.insert(0, candidate_str)
 
-from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
-from src.reporting import VIEWS, attach_reviews, filter_results, view_counts
-from src.rule_engine import process_invoices, summarize_results
+try:
+    from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
+    from src.reporting import VIEWS, attach_reviews, filter_results, view_counts
+    from src.rule_engine import process_invoices, summarize_results
+except ModuleNotFoundError:  # pragma: no cover - fallback for package execution
+    from ..src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
+    from ..src.reporting import VIEWS, attach_reviews, filter_results, view_counts
+    from ..src.rule_engine import process_invoices, summarize_results
 
 st.set_page_config(page_title="FinSight · AP Intelligence",page_icon="✨",layout="wide",initial_sidebar_state="expanded")
 
@@ -20,12 +28,11 @@ st.markdown("""<style>
 html,body,.stApp,[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 85% -10%,rgba(0,217,255,.10),transparent 35%),var(--bg)!important;color:var(--text)!important}
 body,[class*="css"]{font-family:Inter,sans-serif}[data-testid="stHeader"]{background:rgba(8,19,37,.85)!important;border-bottom:1px solid var(--line)}
 .block-container{max-width:1500px;padding:26px 36px 70px}h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif!important;color:var(--text)!important}
-p,label,span,.stMarkdown{color:var(--text)}[data-testid="stSidebar"],[data-testid="stSidebar"]>div{background:#040e20!important;border-right:1px solid var(--line)!important}[data-testid="stSidebar"] *{color:var(--text)!important}
+p,label,span,.stMarkdown{color:var(--text)}[data-testid="stSidebar"],[data-testid="stSidebar"]>div{background:#040e20!important;border-right:1px solid var(--line)!important}[data-testid="stSidebar[...]
 .hero,.card,.metric{border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,var(--card),var(--card2));padding:22px;box-shadow:0 16px 45px rgba(0,0,0,.18)}
 .hero{padding:36px;margin-bottom:20px}.hero h1{font-size:3.3rem;line-height:.98;margin:12px 0}.hero h1 span{color:var(--cyan)}.muted{color:var(--muted)!important}
-.metric{padding:16px}.metric small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.metric strong{display:block;font:700 1.8rem 'Space Grotesk';margin-top:6px}.live,.badge{display:inline-block;border:1px solid rgba(0,217,255,.35);background:rgba(0,217,255,.08);border-radius:999px;padding:6px 10px;color:var(--cyan)!important;font:700 .7rem 'Space Grotesk';letter-spacing:.07em}
-.stButton>button{border-radius:10px!important}.stTextInput>div>div,.stTextArea>div>div,.stSelectbox>div>div,input,textarea,[data-baseweb="select"]>div{background:var(--card2)!important;color:var(--text)!important;border-color:var(--line)!important}
-[data-testid="stDataFrame"]{border:1px solid var(--line);border-radius:14px;overflow:hidden}[data-testid="stTabs"] [role="tab"]{color:var(--muted)!important}.stTabs [aria-selected="true"]{color:var(--cyan)!important}
+.metric{padding:16px}.metric small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.metric strong{display:block;font:700 1.8rem 'Space Grotesk';margin-top:6px}.live,[...]
+.stButton>button{border-radius:10px!important}.stTextInput>div>div,.stTextArea>div>div,input,textarea,[data-baseweb="select"]>div{background:var(--card2)!important;color:var(--text)!important;border:1px solid var(--line)!important}[data-testid="stDataFrame"]{border:1px solid var(--line);border-radius:14px;overflow:hidden}[data-testid="stTabs"] [role="tab"]{color:var(--muted)!important}.stTabs [aria-selected="true"]{color:var(--text)!important}
 [data-testid="stChatMessage"],[data-testid="stExpander"],[data-testid="stFileUploader"]{background:var(--card)!important;border:1px solid var(--line)!important;border-radius:14px!important}
 .footer{text-align:center;color:#859398!important;font:600 .65rem 'Space Grotesk';letter-spacing:.15em;margin-top:40px}
 </style>""",unsafe_allow_html=True)
@@ -53,7 +60,7 @@ def build_results_df(results):
     return pd.DataFrame([{"invoice_id":r.get("invoice_id"),"vendor":(r.get("evidence") or {}).get("vendor"),
         "amount":(r.get("evidence") or {}).get("amount"),"category":(r.get("evidence") or {}).get("category"),
         "invoice_date":(r.get("evidence") or {}).get("invoice_date"),"status":r.get("status"),"route":r.get("route"),
-        "confidence":float(r.get("confidence",0)),"dl_anomaly_score":r.get("dl_anomaly_score"),"dl_anomaly_flag":bool(r.get("dl_anomaly_flag",False)),"ai_risk_score":float(r.get("ai_risk_score",0)),"human_review_required":bool(r.get("human_review_required")),
+        "confidence":float(r.get("confidence",0)),"dl_anomaly_score":r.get("dl_anomaly_score"),"dl_anomaly_flag":bool(r.get("dl_anomaly_flag",False)),"ai_risk_score":float(r.get("ai_risk_score",0)),
         "rule_ids":", ".join(r.get("rule_ids") or []),"reasons":" | ".join(str(x.get("message","")) for x in r.get("reasons",[])),
         "matched_invoice_id":(r.get("evidence") or {}).get("matched_invoice_id")} for r in results])
 
@@ -122,7 +129,7 @@ def evidence_tab():
     selected=st.selectbox("Select invoice",ids,key="evidence_invoice")
     r=next(x for x in st.session_state.results if str(x.get("invoice_id"))==selected)
     st.markdown(f'<span class="badge">● {r.get("status")}</span> <span class="badge">{r.get("route")}</span>',unsafe_allow_html=True)
-    a,b,c,d=st.columns(4); a.metric("Rule confidence",f"{float(r.get('confidence',0)):.0%}"); b.metric("DL anomaly",f"{float(r.get('dl_anomaly_score') or 0):.0%}"); c.metric("Hybrid risk",f"{float(r.get('ai_risk_score') or 0):.0%}"); d.metric("Human review","Required" if r.get("human_review_required") else "Not required")
+    a,b,c,d=st.columns(4); a.metric("Rule confidence",f"{float(r.get('confidence',0)):.0%}"); b.metric("DL anomaly",f"{float(r.get('dl_anomaly_score') or 0):.0%}"); c.metric("Hybrid risk",f"{float(r.get('ai_risk_score',0)):.0%}"); d.metric("Review required",str(r.get('human_review_required')))
     st.markdown("### Why this happened")
     if not r.get("reasons"): st.success("No rule violations. This invoice passed all configured checks.")
     for reason in r.get("reasons",[]):
@@ -201,8 +208,8 @@ def main():
             st.session_state.conn=conn
         for name,(ok,msg) in (st.session_state.conn or {}).items(): (st.success if ok else st.warning)(f"{name}: {msg}")
 
-    st.markdown(f'<div style="display:flex;justify-content:space-between;align-items:center"><h3>FINSIGHT <span style="color:#00d9ff">/ AP INTELLIGENCE</span></h3><span class="live">● {st.session_state.source_name or "NO DATASET LOADED"}</span></div>',unsafe_allow_html=True)
-    st.markdown('<div class="hero"><div class="live">INVOICE CONTROL · EVIDENCE · HUMAN REVIEW</div><h1>Analyze every invoice.<br><span>See every decision.</span></h1><p>Upload a CSV, run the deterministic rule engine, inspect evidence, and send uncertain cases to human review.</p></div>',unsafe_allow_html=True)
+    st.markdown(f'<div style="display:flex;justify-content:space-between;align-items:center"><h3>FINSIGHT <span style="color:#00d9ff">/ AP INTELLIGENCE</span></h3><span class="live">● {st.session_state.source_name or "READY"}</span></div>',unsafe_allow_html=True)
+    st.markdown('<div class="hero"><div class="live">INVOICE CONTROL · EVIDENCE · HUMAN REVIEW</div><h1>Analyze every invoice.<br><span>See every decision.</span></h1><p>Upload a CSV, run the deterministic rule engine and review every exception with evidence.</p></div>',unsafe_allow_html=True)
 
     st.markdown("### 1 · Load your invoice data")
     upload_col,sample_col,reset_col=st.columns([5,1.5,1.2])
