@@ -16,9 +16,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash"
 # Tried in order after GEMINI_MODEL if a model is missing / rate-limited for the key.
-FALLBACK_GEMINI_MODELS = ("gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash", "gemini-2.5-flash-lite")
+FALLBACK_GEMINI_MODELS = ("gemini-3.5-flash", "gemini-flash-latest", "gemini-3.1-flash-lite", "gemini-3-flash-preview", "gemini-2.5-flash")
 MAX_QUESTION_CHARS = 4000
 MAX_HISTORY_ITEMS = 14
 MAX_HISTORY_MESSAGE_CHARS = 2500
@@ -255,6 +255,8 @@ def template_chat(
         return "Gemini rejected the API key. Create a new key at aistudio.google.com and set GEMINI_API_KEY."
     if reason == "provider_unavailable":
         return "Gemini is temporarily overloaded. Please try again in a few seconds."
+    if reason == "network":
+        return "Could not reach Gemini (network/DNS problem). Check internet access / firewall and try again."
     if reason == "empty":
         return "Gemini returned an empty answer (possibly blocked by its safety filter). Try rephrasing."
     if reason == "other":
@@ -273,14 +275,30 @@ def _error_kind(exc: Exception) -> str:
     if isinstance(exc, GeminiError):
         return exc.kind
     text = str(exc).lower()
-    if any(x in text for x in ("api_key_invalid", "api key not valid", "api key expired", "permission_denied", "unauthenticated", "401", "403")):
-        return "auth"
-    if "404" in text or "not_found" in text or "is not found" in text or "not supported for generatecontent" in text:
-        return "model_unavailable"
-    if "429" in text or "resource_exhausted" in text or "quota" in text or "rate limit" in text:
+
+    # Prefer the real HTTP status code (google-genai exposes .code); otherwise
+    # read it ONLY from the start of the message ("429 RESOURCE_EXHAUSTED ...").
+    code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+    if not isinstance(code, int):
+        m = re.match(r"\s*(\d{3})\b", text)
+        code = int(m.group(1)) if m else None
+
+    # Quota FIRST: its message often contains numbers like "retry in 40.403s".
+    if code == 429 or any(x in text for x in ("resource_exhausted", "quota", "rate limit", "rate-limit")):
         return "quota"
-    if any(x in text for x in ("503", "500", "unavailable", "temporarily", "high demand", "overloaded", "deadline", "timeout")):
+    if code in (401, 403) or any(x in text for x in (
+            "api_key_invalid", "api key not valid", "api key expired", "api key was reported",
+            "permission_denied", "unauthenticated")):
+        return "auth"
+    if code == 404 or any(x in text for x in ("not_found", "is not found", "no longer available",
+                                               "not supported for generatecontent")):
+        return "model_unavailable"
+    if code in (500, 502, 503, 504) or any(x in text for x in (
+            "unavailable", "temporarily", "high demand", "overloaded", "deadline", "timeout", "timed out")):
         return "provider_unavailable"
+    if any(x in text for x in ("name or service not known", "connecterror", "connection", "network",
+                               "ssl", "getaddrinfo", "temporary failure in name resolution")):
+        return "network"
     return "other"
 
 
@@ -292,8 +310,27 @@ def _model_chain() -> list[str]:
     return chain
 
 
+_ERROR_PRIORITY = ["auth", "quota", "provider_unavailable", "network", "empty", "other", "model_unavailable"]
+
+
+def _discover_models(client) -> list[str]:
+    """Ask the API which Flash models THIS key can really call (survives model retirements)."""
+    try:
+        names: list[str] = []
+        for m in client.models.list():
+            name = (getattr(m, "name", "") or "").replace("models/", "")
+            actions = getattr(m, "supported_actions", None) or []
+            if ("generateContent" in actions and "flash" in name
+                    and not any(x in name for x in ("image", "live", "audio", "tts", "embedding", "native", "robotics", "computer"))):
+                names.append(name)
+        return sorted(set(names), reverse=True)[:5]
+    except Exception:
+        return []
+
+
 def _call_gemini(prompt: str, system: str | None = None) -> tuple[str, str]:
-    """Call Gemini, walking the model chain and retrying transient errors.
+    """Call Gemini, walking the model chain, retrying transient errors and,
+    if every listed model fails, auto-discovering models the key can use.
 
     Returns (text, model_used). Raises GeminiError(kind, detail) on failure.
     """
@@ -308,32 +345,50 @@ def _call_gemini(prompt: str, system: str | None = None) -> tuple[str, str]:
 
     client = genai.Client(api_key=api_key)
     config = types.GenerateContentConfig(system_instruction=system) if system else None
-    last: GeminiError | None = None
+    errors: list[GeminiError] = []
+    tried: set[str] = set()
 
-    for model in _model_chain():
-        for attempt in range(3):
-            try:
-                kwargs = {"model": model, "contents": prompt}
-                if config is not None:
-                    kwargs["config"] = config
-                response = client.models.generate_content(**kwargs)
-                text = (getattr(response, "text", None) or "").strip()
-                if not text:
-                    raise GeminiError("empty", "empty response")
-                return text, model
-            except GeminiError as exc:
-                last = exc
-                break  # try next model
-            except Exception as exc:
-                kind = _error_kind(exc)
-                last = GeminiError(kind, str(exc)[:300])
-                if kind == "provider_unavailable" and attempt < 2:
-                    time.sleep(1.0 * (2 ** attempt))
-                    continue
-                if kind == "auth":
-                    raise last  # a different model will not fix a bad key
-                break  # model_unavailable / quota / other -> next model
-    raise last or GeminiError("other", "no model available")
+    def attempt_models(models: list[str]):
+        for model in models:
+            if model in tried:
+                continue
+            tried.add(model)
+            for attempt in range(3):
+                try:
+                    kwargs = {"model": model, "contents": prompt}
+                    if config is not None:
+                        kwargs["config"] = config
+                    response = client.models.generate_content(**kwargs)
+                    text = (getattr(response, "text", None) or "").strip()
+                    if not text:
+                        raise GeminiError("empty", "empty response")
+                    return text, model
+                except GeminiError as exc:
+                    errors.append(exc)
+                    break  # try next model
+                except Exception as exc:
+                    kind = _error_kind(exc)
+                    err = GeminiError(kind, f"{model}: {str(exc)[:300]}")
+                    errors.append(err)
+                    if kind in ("provider_unavailable", "network") and attempt < 2:
+                        time.sleep(1.0 * (2 ** attempt))
+                        continue
+                    if kind == "auth":
+                        raise err  # a different model will not fix a bad key
+                    break  # model_unavailable / quota / other -> next model
+        return None
+
+    found = attempt_models(_model_chain())
+    if found:
+        return found
+    if all(e.kind in ("model_unavailable", "quota") for e in errors):
+        found = attempt_models(_discover_models(client))
+        if found:
+            return found
+
+    # Report the MOST useful error, not just the last one.
+    best = min(errors, key=lambda e: _ERROR_PRIORITY.index(e.kind) if e.kind in _ERROR_PRIORITY else 99) if errors else None
+    raise best or GeminiError("other", "no model available")
 
 
 def ask_gemini(
