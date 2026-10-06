@@ -11,7 +11,8 @@ def filter_results(df: pd.DataFrame, query: str = "", view: str = "All") -> pd.D
     elif view == "Exceptions":
         out = out[out["status"] == "EXCEPTION"]
     elif view == "Human review":
-        out = out[out["human_review_required"].astype(bool)]
+        if "human_review_required" in out.columns:
+            out = out[out["human_review_required"].astype(bool)]
     query = (query or "").strip().casefold()
     if query and not out.empty:
         haystack = out.fillna("").astype(str).agg(" ".join, axis=1).str.casefold()
