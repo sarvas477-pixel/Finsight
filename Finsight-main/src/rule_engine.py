@@ -1,7 +1,7 @@
 import math
 from typing import Any
 import pandas as pd
-from src.config import CATEGORY_LIMITS, REQUIRED_COLUMNS
+from .config import CATEGORY_LIMITS, REQUIRED_COLUMNS
 
 def _is_missing(value: Any) -> bool:
     if value is None: return True
@@ -89,7 +89,7 @@ def process_invoices(df: pd.DataFrame) -> list[dict]:
                                 "message":"Possible duplicate: vendor, amount, and invoice date match another invoice.",
                                 "actual_value":{"vendor":values["vendor"],"amount":amount,"invoice_date":date},
                                 "expected_value":"No invoice with the same vendor, amount, and date.",
-                                "matched_invoice_id":old.get("invoice_id"),"matched_invoice_ids":[old.get("invoice_id"]),
+                                "matched_invoice_id":old.get("invoice_id"),"matched_invoice_ids":[old.get("invoice_id")],
                                 "human_review_required":True})
                 break
         previous.append({**values,"amount":amount,"invoice_date":date})
@@ -114,7 +114,7 @@ def process_invoices(df: pd.DataFrame) -> list[dict]:
     # Deep learning is an additional signal, not a replacement for policy rules.
     # A PyTorch autoencoder learns unusual invoice patterns and can route them to review.
     try:
-        from src.deep_learning import analyze_with_deep_learning
+        from .deep_learning import analyze_with_deep_learning
         dl = analyze_with_deep_learning(df)
     except Exception as exc:
         dl = {"available":False,"reason":f"Deep learning unavailable: {exc}",
